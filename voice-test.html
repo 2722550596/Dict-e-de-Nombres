@@ -49,16 +49,44 @@
             max-height: 200px;
             overflow-y: auto;
         }
+        .voice-selector {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 10px 0;
+            width: 100%;
+            max-width: 400px;
+            font-size: 14px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
-    <h1>Test de Voix Française - iOS Safari</h1>
-    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <button class="button" onclick="window.close(); window.history.back();" style="background: #6c757d;">
+            ← Retour
+        </button>
+        <h1 style="margin: 0;">Test de Voix Française</h1>
+        <div style="width: 80px;"></div> <!-- Spacer for centering -->
+    </div>
+
     <div id="warning" class="warning" style="display: none;"></div>
     <div id="info" class="info" style="display: none;"></div>
     
     <div>
+        <label for="voiceSelect">Choisir la voix française:</label>
+        <select id="voiceSelect" class="voice-selector" onchange="onVoiceChange()">
+            <option value="">Voix par défaut</option>
+        </select>
+    </div>
+    
+    <div>
         <button class="button" onclick="testFrenchVoice()">Test Voix Française</button>
+        <button class="button" onclick="testAllFrenchVoices()">Tester Toutes les Voix</button>
         <button class="button" onclick="listVoices()">Lister les Voix</button>
         <button class="button" onclick="testNumbers()">Test Nombres</button>
     </div>
@@ -66,6 +94,8 @@
     <div id="voiceList" class="voice-list" style="display: none;"></div>
     
     <script>
+        let selectedVoice = null;
+        
         function showWarning(message) {
             const warning = document.getElementById('warning');
             warning.textContent = message;
@@ -78,37 +108,78 @@
             info.style.display = 'block';
         }
         
-        function getFrenchVoice() {
-            if (!window.speechSynthesis) return null;
+        function clearMessages() {
+            document.getElementById('warning').style.display = 'none';
+            document.getElementById('info').style.display = 'none';
+        }
+        
+        function getAllFrenchVoices() {
+            if (!window.speechSynthesis) return [];
             
             const voices = window.speechSynthesis.getVoices();
             
-            // 优先查找法语语音
-            const frenchVoicePatterns = [
-                /fr.*fr/i,  // fr-FR
-                /french/i,  // 包含french的语音
-                /fr/i       // 包含fr的语音
-            ];
-            
-            for (const pattern of frenchVoicePatterns) {
-                const voice = voices.find(v => 
-                    pattern.test(v.lang) || pattern.test(v.name)
-                );
-                if (voice) {
-                    console.log('找到法语语音:', voice.name, voice.lang);
-                    return voice;
-                }
+            // Rechercher toutes les voix françaises
+            return voices.filter(voice => {
+                const isFrench = /fr/i.test(voice.lang) || /french/i.test(voice.name);
+                return isFrench;
+            });
+        }
+        
+        function getFrenchVoice() {
+            // Si l'utilisateur a sélectionné une voix spécifique, l'utiliser
+            if (selectedVoice) {
+                return selectedVoice;
             }
             
-            console.warn('未找到法语语音');
-            return null;
+            // Sinon utiliser la logique par défaut
+            const frenchVoices = getAllFrenchVoices();
+            return frenchVoices.length > 0 ? frenchVoices[0] : null;
+        }
+        
+        function populateVoiceSelector() {
+            const select = document.getElementById('voiceSelect');
+            const frenchVoices = getAllFrenchVoices();
+            
+            // Vider les options existantes (garder l'option par défaut)
+            select.innerHTML = '<option value="">Voix par défaut</option>';
+            
+            frenchVoices.forEach((voice, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${voice.name} (${voice.lang})`;
+                select.appendChild(option);
+            });
+            
+            if (frenchVoices.length === 0) {
+                const option = document.createElement('option');
+                option.textContent = 'Aucune voix française disponible';
+                option.disabled = true;
+                select.appendChild(option);
+            }
+        }
+        
+        function onVoiceChange() {
+            clearMessages();
+            const select = document.getElementById('voiceSelect');
+            const frenchVoices = getAllFrenchVoices();
+            
+            if (select.value === '') {
+                selectedVoice = null;
+                showInfo('Utilisation de la voix par défaut');
+            } else {
+                const voiceIndex = parseInt(select.value);
+                selectedVoice = frenchVoices[voiceIndex];
+                showInfo(`Voix sélectionnée: ${selectedVoice.name} (${selectedVoice.lang})`);
+            }
         }
         
         function testFrenchVoice() {
             if (!window.speechSynthesis) {
-                showWarning('您的浏览器不支持语音合成功能');
+                showWarning('Votre navigateur ne supporte pas la synthèse vocale');
                 return;
             }
+            
+            clearMessages();
             
             const utterance = new SpeechSynthesisUtterance('Bonjour, test de la voix française');
             utterance.lang = 'fr-FR';
@@ -116,13 +187,21 @@
             const frenchVoice = getFrenchVoice();
             if (frenchVoice) {
                 utterance.voice = frenchVoice;
-                showInfo(`使用法语语音: ${frenchVoice.name} (${frenchVoice.lang})`);
+                showInfo(`Utilisation de la voix: ${frenchVoice.name} (${frenchVoice.lang})`);
             } else {
-                showWarning('未找到法语语音，使用默认语音');
+                showWarning('Aucune voix française trouvée, utilisation de la voix par défaut');
             }
             
             utterance.onerror = (event) => {
-                showWarning(`语音错误: ${event.error}`);
+                showWarning(`Erreur vocale: ${event.error}`);
+            };
+            
+            utterance.onstart = () => {
+                console.log('Lecture commencée');
+            };
+            
+            utterance.onend = () => {
+                console.log('Lecture terminée');
             };
             
             window.speechSynthesis.speak(utterance);
@@ -154,20 +233,63 @@
             speakNext();
         }
         
+        function testAllFrenchVoices() {
+            const frenchVoices = getAllFrenchVoices();
+            if (frenchVoices.length === 0) {
+                showWarning('Aucune voix française disponible');
+                return;
+            }
+            
+            clearMessages();
+            showInfo('Test de toutes les voix françaises...');
+            
+            let voiceIndex = 0;
+            
+            function testNextVoice() {
+                if (voiceIndex >= frenchVoices.length) {
+                    showInfo('Test terminé pour toutes les voix');
+                    return;
+                }
+                
+                const voice = frenchVoices[voiceIndex];
+                const utterance = new SpeechSynthesisUtterance(`Voix ${voiceIndex + 1}: ${voice.name}`);
+                utterance.lang = 'fr-FR';
+                utterance.voice = voice;
+                
+                utterance.onstart = () => {
+                    showInfo(`Test voix ${voiceIndex + 1}/${frenchVoices.length}: ${voice.name}`);
+                };
+                
+                utterance.onend = () => {
+                    voiceIndex++;
+                    setTimeout(testNextVoice, 1000);
+                };
+                
+                utterance.onerror = () => {
+                    voiceIndex++;
+                    setTimeout(testNextVoice, 500);
+                };
+                
+                window.speechSynthesis.speak(utterance);
+            }
+            
+            testNextVoice();
+        }
+        
         function listVoices() {
             const voiceList = document.getElementById('voiceList');
             const voices = window.speechSynthesis.getVoices();
             
             if (voices.length === 0) {
-                voiceList.innerHTML = '<p>没有找到语音，请稍后再试</p>';
+                voiceList.innerHTML = '<p>Aucune voix trouvée, veuillez réessayer plus tard</p>';
                 voiceList.style.display = 'block';
                 return;
             }
-            
-            let html = '<h3>可用语音:</h3><ul>';
+
+            let html = '<h3>Voix disponibles:</h3><ul>';
             voices.forEach(voice => {
                 const isFrench = /fr/i.test(voice.lang) || /french/i.test(voice.name);
-                html += `<li style="${isFrench ? 'font-weight: bold; color: green;' : ''}">${voice.name} (${voice.lang}) ${voice.default ? '[默认]' : ''}</li>`;
+                html += `<li style="${isFrench ? 'font-weight: bold; color: green;' : ''}">${voice.name} (${voice.lang}) ${voice.default ? '[par défaut]' : ''}</li>`;
             });
             html += '</ul>';
             
@@ -175,14 +297,14 @@
             voiceList.style.display = 'block';
         }
         
-        // 页面加载时检查语音支持
+        // Vérifier le support vocal lors du chargement de la page
         window.addEventListener('load', () => {
             if (!window.speechSynthesis) {
-                showWarning('您的浏览器不支持Web Speech API');
+                showWarning('Votre navigateur ne supporte pas Web Speech API');
                 return;
             }
             
-            // 等待语音列表加载
+            // Attendre le chargement de la liste des voix
             function checkVoices() {
                 const voices = window.speechSynthesis.getVoices();
                 if (voices.length === 0) {
@@ -190,20 +312,24 @@
                     return;
                 }
                 
-                const frenchVoice = getFrenchVoice();
-                if (!frenchVoice) {
-                    showWarning('未检测到法语语音包。在iOS设备上，请前往 设置 > 辅助功能 > 朗读内容 > 语音 添加法语语音。');
+                // Remplir le sélecteur de voix
+                populateVoiceSelector();
+                
+                const frenchVoices = getAllFrenchVoices();
+                if (frenchVoices.length === 0) {
+                    showWarning('Aucune voix française détectée. Sur iOS, allez dans Réglages > Accessibilité > Contenu énoncé > Voix pour ajouter une voix française.');
                 } else {
-                    showInfo(`检测到法语语音: ${frenchVoice.name}`);
+                    showInfo(`${frenchVoices.length} voix française(s) détectée(s)`);
                 }
             }
             
             checkVoices();
         });
         
-        // 监听语音列表变化（iOS Safari需要）
+        // Écouter les changements de liste de voix (nécessaire pour iOS Safari)
         window.speechSynthesis.onvoiceschanged = () => {
-            console.log('语音列表已更新');
+            console.log('Liste des voix mise à jour');
+            populateVoiceSelector();
         };
     </script>
 </body>

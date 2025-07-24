@@ -565,22 +565,7 @@ const PracticePanel: React.FC<PracticePanelProps> = ({ settings, onReset }) => {
           />
           <span>s</span>
         </div>
-        <button
-          className="button"
-          onClick={() => {
-            const testUtterance = new SpeechSynthesisUtterance('Test français');
-            testUtterance.lang = 'fr-FR';
-            const frenchVoice = getFrenchVoice();
-            if (frenchVoice) {
-              testUtterance.voice = frenchVoice;
-            }
-            window.speechSynthesis.speak(testUtterance);
-          }}
-          disabled={isSubmitted}
-          style={{fontSize: '12px', padding: '4px 8px'}}
-        >
-          Test Voix
-        </button>
+
 
         {/* 进度指示器 */}
         <div className="progress-section">
@@ -689,6 +674,15 @@ const App = () => {
 
   return (
     <div className="app-container">
+      {/* 调试按钮 - 固定在左上角 */}
+      <button
+        className="debug-button"
+        onClick={() => window.open('./voice-test.html', '_blank')}
+        title="Entrer dans le test de débogage"
+      >
+        🔧
+      </button>
+
       <h1>Dictée de Nombres</h1>
       <p className="app-subtitle">Améliorez votre compréhension des nombres en français</p>
       {view === 'settings' ? (

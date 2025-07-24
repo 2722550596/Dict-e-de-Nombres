@@ -46,6 +46,33 @@ body {
   box-shadow: var(--box-shadow);
   padding: 2rem;
   transition: all 0.3s ease-in-out;
+  position: relative;
+}
+
+/* 调试按钮样式 */
+.debug-button {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  z-index: 1000;
+}
+
+.debug-button:hover {
+  background: #5a6268;
+  transform: scale(1.05);
 }
 
 h1 {
