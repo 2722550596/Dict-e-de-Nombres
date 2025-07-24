@@ -122,6 +122,7 @@ const PracticePanel: React.FC<PracticePanelProps> = ({ settings, onReset }) => {
   const [audioState, setAudioState] = useState<'idle' | 'playing' | 'paused'>('idle');
   const [playbackInterval, setPlaybackInterval] = useState(1.0); // 新增：播放间隔时间（秒）
   const [currentPlayingIndex, setCurrentPlayingIndex] = useState(0); // 新增：当前播放索引的state
+  const [voiceWarning, setVoiceWarning] = useState<string | null>(null); // 语音警告信息
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
@@ -139,7 +140,40 @@ const PracticePanel: React.FC<PracticePanelProps> = ({ settings, onReset }) => {
     inputRefs.current = Array(generated.length).fill(null);
     setCurrentPlayingIndex(0); // 重置播放索引
     currentSpeechIndex.current = 0; // 重置ref
+
+    // 检查语音支持
+    checkVoiceSupport();
   }, [settings]);
+
+  // 检查语音支持
+  const checkVoiceSupport = useCallback(() => {
+    if (!window.speechSynthesis) {
+      setVoiceWarning('您的浏览器不支持语音合成功能');
+      return;
+    }
+
+    // 等待语音列表加载
+    const checkVoices = () => {
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length === 0) {
+        // 语音列表可能还在加载中，稍后再试
+        setTimeout(checkVoices, 100);
+        return;
+      }
+
+      const frenchVoice = voices.find(v =>
+        /fr.*fr/i.test(v.lang) || /french/i.test(v.name) || /fr/i.test(v.lang)
+      );
+
+      if (!frenchVoice) {
+        setVoiceWarning('未检测到法语语音包，可能会使用默认语音。建议在设备设置中安装法语语音包。');
+      } else {
+        setVoiceWarning(null);
+      }
+    };
+
+    checkVoices();
+  }, []);
 
   // 同步播放速度到 ref
   useEffect(() => {
@@ -169,6 +203,33 @@ const PracticePanel: React.FC<PracticePanelProps> = ({ settings, onReset }) => {
     isPlayingRef.current = newState === 'playing';
   }, []);
 
+  // 获取法语语音
+  const getFrenchVoice = useCallback(() => {
+    if (!window.speechSynthesis) return null;
+
+    const voices = window.speechSynthesis.getVoices();
+
+    // 优先查找法语语音，按优先级排序
+    const frenchVoicePatterns = [
+      /fr.*fr/i,  // fr-FR
+      /french/i,  // 包含french的语音
+      /fr/i       // 包含fr的语音
+    ];
+
+    for (const pattern of frenchVoicePatterns) {
+      const voice = voices.find(v =>
+        pattern.test(v.lang) || pattern.test(v.name)
+      );
+      if (voice) {
+        console.log('找到法语语音:', voice.name, voice.lang);
+        return voice;
+      }
+    }
+
+    console.warn('未找到法语语音，可用语音:', voices.map(v => `${v.name} (${v.lang})`));
+    return null;
+  }, []);
+
   // 播放当前索引的数字
   const playCurrentNumber = useCallback((speed?: number) => {
     const index = currentSpeechIndex.current;
@@ -183,7 +244,19 @@ const PracticePanel: React.FC<PracticePanelProps> = ({ settings, onReset }) => {
 
     const number = numbersToGuess[index];
     const utterance = new SpeechSynthesisUtterance(number.toString());
+
+    // 设置语言
     utterance.lang = 'fr-FR';
+
+    // 尝试设置法语语音
+    const frenchVoice = getFrenchVoice();
+    if (frenchVoice) {
+      utterance.voice = frenchVoice;
+    } else {
+      // 如果没有法语语音，显示警告（仅在开发环境）
+      console.warn('警告：未找到法语语音，可能会使用默认语音');
+    }
+
     utterance.rate = speed !== undefined ? speed : playbackSpeedRef.current;
 
     utterance.onend = () => {
@@ -212,8 +285,12 @@ const PracticePanel: React.FC<PracticePanelProps> = ({ settings, onReset }) => {
     };
 
     utterance.onerror = (event) => {
+      console.error('语音合成错误:', event.error);
       // 只有在真正的错误时才重置状态，忽略因为 cancel() 导致的错误
       if (event.error !== 'canceled' && event.error !== 'interrupted') {
+        if (event.error === 'language-unavailable' || event.error === 'voice-unavailable') {
+          setVoiceWarning('不支持法语语音，请检查设备语音设置');
+        }
         updatePlaybackState('idle');
       }
     };
@@ -237,6 +314,11 @@ const PracticePanel: React.FC<PracticePanelProps> = ({ settings, onReset }) => {
   }, [numbersToGuess, updatePlaybackState, playCurrentNumber, playbackInterval]);
   
   const handlePlayPause = () => {
+    // 在用户交互时重新检查语音支持（iOS Safari需要）
+    if (audioState === 'idle') {
+      checkVoiceSupport();
+    }
+
     if (audioState === 'playing') {
       // 暂停播放
       updatePlaybackState('paused');
@@ -379,15 +461,43 @@ const PracticePanel: React.FC<PracticePanelProps> = ({ settings, onReset }) => {
     newAnswers[index] = value;
     setUserAnswers(newAnswers);
 
-    // 智能自动跳转：当输入完整时跳转到下一个输入框
+    // 智能自动跳转：当输入完整时跳转到下一个输入框或下一页
     if (isInputComplete(value, expectedDigits) && index < numbersToGuess.length - 1) {
-      inputRefs.current[index + 1]?.focus();
+      const nextIndex = index + 1;
+      const currentPageIndex = Math.floor(index / ITEMS_PER_PAGE);
+      const nextPageIndex = Math.floor(nextIndex / ITEMS_PER_PAGE);
+
+      // 如果下一个输入框在下一页，则自动跳转到下一页
+      if (nextPageIndex > currentPageIndex && nextPageIndex < totalPages) {
+        setCurrentPage(nextPageIndex);
+        // 使用 setTimeout 确保页面切换完成后再聚焦
+        setTimeout(() => {
+          inputRefs.current[nextIndex]?.focus();
+        }, 50);
+      } else {
+        // 在同一页内跳转
+        inputRefs.current[nextIndex]?.focus();
+      }
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
     if (e.key === 'Backspace' && userAnswers[index] === '' && index > 0) {
-      inputRefs.current[index - 1]?.focus();
+      const prevIndex = index - 1;
+      const currentPageIndex = Math.floor(index / ITEMS_PER_PAGE);
+      const prevPageIndex = Math.floor(prevIndex / ITEMS_PER_PAGE);
+
+      // 如果上一个输入框在上一页，则自动跳转到上一页
+      if (prevPageIndex < currentPageIndex && prevPageIndex >= 0) {
+        setCurrentPage(prevPageIndex);
+        // 使用 setTimeout 确保页面切换完成后再聚焦
+        setTimeout(() => {
+          inputRefs.current[prevIndex]?.focus();
+        }, 50);
+      } else {
+        // 在同一页内跳转
+        inputRefs.current[prevIndex]?.focus();
+      }
     }
   };
   
@@ -415,6 +525,19 @@ const PracticePanel: React.FC<PracticePanelProps> = ({ settings, onReset }) => {
 
   return (
     <div className="practice-panel">
+      {voiceWarning && (
+        <div className="voice-warning" style={{
+          backgroundColor: '#fff3cd',
+          border: '1px solid #ffeaa7',
+          borderRadius: '4px',
+          padding: '8px 12px',
+          marginBottom: '16px',
+          fontSize: '14px',
+          color: '#856404'
+        }}>
+          ⚠️ {voiceWarning}
+        </div>
+      )}
       <div className="audio-controls">
         <button className="button" onClick={handlePlayPause} disabled={isSubmitted}>{audioState === 'playing' ? 'Pause' : 'Lecture'}</button>
         <button className="button" onClick={handleReplay} disabled={isSubmitted}>Répéter</button>
@@ -442,6 +565,22 @@ const PracticePanel: React.FC<PracticePanelProps> = ({ settings, onReset }) => {
           />
           <span>s</span>
         </div>
+        <button
+          className="button"
+          onClick={() => {
+            const testUtterance = new SpeechSynthesisUtterance('Test français');
+            testUtterance.lang = 'fr-FR';
+            const frenchVoice = getFrenchVoice();
+            if (frenchVoice) {
+              testUtterance.voice = frenchVoice;
+            }
+            window.speechSynthesis.speak(testUtterance);
+          }}
+          disabled={isSubmitted}
+          style={{fontSize: '12px', padding: '4px 8px'}}
+        >
+          Test Voix
+        </button>
 
         {/* 进度指示器 */}
         <div className="progress-section">
