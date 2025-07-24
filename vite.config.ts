@@ -17,6 +17,16 @@ export default defineConfig(({ mode, command }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
+      },
+      // 确保voice-test.html被复制到构建输出
+      publicDir: 'public',
+      build: {
+        rollupOptions: {
+          input: {
+            main: path.resolve(__dirname, 'index.html'),
+            voiceTest: path.resolve(__dirname, 'voice-test.html')
+          }
+        }
       }
     };
 });

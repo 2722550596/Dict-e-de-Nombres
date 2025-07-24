@@ -89,6 +89,11 @@
         <button class="button" onclick="testAllFrenchVoices()">Tester Toutes les Voix</button>
         <button class="button" onclick="listVoices()">Lister les Voix</button>
         <button class="button" onclick="testNumbers()">Test Nombres</button>
+        <button class="button" onclick="clearSavedVoice()" style="background: #dc3545;">Effacer Voix Sauvegardée</button>
+    </div>
+
+    <div id="savedVoiceStatus" style="margin: 10px 0; padding: 10px; background: #e9ecef; border-radius: 4px; display: none;">
+        <strong>Voix sauvegardée:</strong> <span id="savedVoiceInfo"></span>
     </div>
     
     <div id="voiceList" class="voice-list" style="display: none;"></div>
@@ -139,38 +144,116 @@
         function populateVoiceSelector() {
             const select = document.getElementById('voiceSelect');
             const frenchVoices = getAllFrenchVoices();
-            
+
             // Vider les options existantes (garder l'option par défaut)
             select.innerHTML = '<option value="">Voix par défaut</option>';
-            
+
             frenchVoices.forEach((voice, index) => {
                 const option = document.createElement('option');
                 option.value = index;
                 option.textContent = `${voice.name} (${voice.lang})`;
                 select.appendChild(option);
             });
-            
+
             if (frenchVoices.length === 0) {
                 const option = document.createElement('option');
                 option.textContent = 'Aucune voix française disponible';
                 option.disabled = true;
                 select.appendChild(option);
             }
+
+            // Restaurer la voix sauvegardée si elle existe
+            restoreSavedVoice();
+        }
+
+        function restoreSavedVoice() {
+            try {
+                const savedVoiceData = localStorage.getItem('selectedFrenchVoice');
+                if (savedVoiceData) {
+                    const voiceData = JSON.parse(savedVoiceData);
+                    const frenchVoices = getAllFrenchVoices();
+                    const select = document.getElementById('voiceSelect');
+
+                    // Trouver la voix correspondante
+                    const matchingVoiceIndex = frenchVoices.findIndex(voice =>
+                        voice.voiceURI === voiceData.voiceURI ||
+                        (voice.name === voiceData.name && voice.lang === voiceData.lang)
+                    );
+
+                    if (matchingVoiceIndex !== -1) {
+                        select.value = matchingVoiceIndex;
+                        selectedVoice = frenchVoices[matchingVoiceIndex];
+                        showInfo(`Voix restaurée: ${selectedVoice.name} (${selectedVoice.lang})`);
+                        updateSavedVoiceStatus();
+                    } else {
+                        // La voix sauvegardée n'est plus disponible
+                        localStorage.removeItem('selectedFrenchVoice');
+                        showWarning('La voix sauvegardée n\'est plus disponible');
+                        updateSavedVoiceStatus();
+                    }
+                } else {
+                    updateSavedVoiceStatus();
+                }
+            } catch (error) {
+                console.error('Erreur lors de la restauration de la voix:', error);
+                localStorage.removeItem('selectedFrenchVoice');
+                updateSavedVoiceStatus();
+            }
+        }
+
+        function updateSavedVoiceStatus() {
+            const statusDiv = document.getElementById('savedVoiceStatus');
+            const infoSpan = document.getElementById('savedVoiceInfo');
+
+            try {
+                const savedVoiceData = localStorage.getItem('selectedFrenchVoice');
+                if (savedVoiceData) {
+                    const voiceData = JSON.parse(savedVoiceData);
+                    infoSpan.textContent = `${voiceData.name} (${voiceData.lang})`;
+                    statusDiv.style.display = 'block';
+                } else {
+                    statusDiv.style.display = 'none';
+                }
+            } catch (error) {
+                statusDiv.style.display = 'none';
+            }
+        }
+
+        function clearSavedVoice() {
+            localStorage.removeItem('selectedFrenchVoice');
+            selectedVoice = null;
+            const select = document.getElementById('voiceSelect');
+            select.value = '';
+            updateSavedVoiceStatus();
+            showInfo('Voix sauvegardée effacée. Utilisation de la voix par défaut.');
         }
         
         function onVoiceChange() {
             clearMessages();
             const select = document.getElementById('voiceSelect');
             const frenchVoices = getAllFrenchVoices();
-            
+
             if (select.value === '') {
                 selectedVoice = null;
+                localStorage.removeItem('selectedFrenchVoice');
                 showInfo('Utilisation de la voix par défaut');
             } else {
                 const voiceIndex = parseInt(select.value);
                 selectedVoice = frenchVoices[voiceIndex];
-                showInfo(`Voix sélectionnée: ${selectedVoice.name} (${selectedVoice.lang})`);
+
+                // Sauvegarder la voix sélectionnée dans le stockage local
+                const voiceData = {
+                    name: selectedVoice.name,
+                    lang: selectedVoice.lang,
+                    voiceURI: selectedVoice.voiceURI
+                };
+                localStorage.setItem('selectedFrenchVoice', JSON.stringify(voiceData));
+
+                showInfo(`Voix sélectionnée et sauvegardée: ${selectedVoice.name} (${selectedVoice.lang})`);
             }
+
+            // 更新保存状态显示
+            updateSavedVoiceStatus();
         }
         
         function testFrenchVoice() {

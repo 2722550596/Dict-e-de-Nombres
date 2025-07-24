@@ -209,7 +209,33 @@ const PracticePanel: React.FC<PracticePanelProps> = ({ settings, onReset }) => {
 
     const voices = window.speechSynthesis.getVoices();
 
-    // 优先查找法语语音，按优先级排序
+    // 首先尝试使用保存的语音设置
+    try {
+      const savedVoiceData = localStorage.getItem('selectedFrenchVoice');
+      if (savedVoiceData) {
+        const voiceData = JSON.parse(savedVoiceData);
+
+        // 查找匹配的语音
+        const savedVoice = voices.find(voice =>
+          voice.voiceURI === voiceData.voiceURI ||
+          (voice.name === voiceData.name && voice.lang === voiceData.lang)
+        );
+
+        if (savedVoice) {
+          console.log('使用保存的法语语音:', savedVoice.name, savedVoice.lang);
+          return savedVoice;
+        } else {
+          console.warn('保存的语音不再可用，使用默认法语语音');
+          // 清除无效的保存数据
+          localStorage.removeItem('selectedFrenchVoice');
+        }
+      }
+    } catch (error) {
+      console.error('读取保存的语音设置时出错:', error);
+      localStorage.removeItem('selectedFrenchVoice');
+    }
+
+    // 如果没有保存的语音或保存的语音不可用，使用默认逻辑
     const frenchVoicePatterns = [
       /fr.*fr/i,  // fr-FR
       /french/i,  // 包含french的语音
@@ -221,7 +247,7 @@ const PracticePanel: React.FC<PracticePanelProps> = ({ settings, onReset }) => {
         pattern.test(v.lang) || pattern.test(v.name)
       );
       if (voice) {
-        console.log('找到法语语音:', voice.name, voice.lang);
+        console.log('找到默认法语语音:', voice.name, voice.lang);
         return voice;
       }
     }
