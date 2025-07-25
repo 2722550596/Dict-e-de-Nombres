@@ -13,6 +13,25 @@ export interface Translations {
   quantity: string;
   startExercise: string;
 
+  // 模式相关
+  modes: {
+    numberDictation: string;
+    mathDictation: string;
+  };
+
+  // 运算听写相关
+  operationTypes: string;
+  maxResult: string;
+  selectAtLeastOneOperation: string;
+  answerFor: string;
+
+  operations: {
+    addition: string;
+    subtraction: string;
+    multiplication: string;
+    division: string;
+  };
+
   difficulties: {
     [key: string]: string;
   };
@@ -69,7 +88,24 @@ export const TRANSLATIONS: Record<string, Translations> = {
     customRange: "Plage personnalisée",
     quantity: "Quantité",
     startExercise: "Commencer l'exercice",
-    
+
+    modes: {
+      numberDictation: "Dictée de nombres",
+      mathDictation: "Dictée d'opérations"
+    },
+
+    operationTypes: "Types d'opérations",
+    maxResult: "Résultat maximum",
+    selectAtLeastOneOperation: "Veuillez sélectionner au moins une opération",
+    answerFor: "Réponse pour le numéro",
+
+    operations: {
+      addition: "Addition (+)",
+      subtraction: "Soustraction (-)",
+      multiplication: "Multiplication (×)",
+      division: "Division (÷)"
+    },
+
     difficulties: {
       "0-9": "0-9",
       "0-20": "0-20",
@@ -116,7 +152,24 @@ export const TRANSLATIONS: Record<string, Translations> = {
     customRange: "Custom Range",
     quantity: "Quantity", 
     startExercise: "Start Exercise",
-    
+
+    modes: {
+      numberDictation: "Number Dictation",
+      mathDictation: "Math Dictation"
+    },
+
+    operationTypes: "Operation Types",
+    maxResult: "Maximum Result",
+    selectAtLeastOneOperation: "Please select at least one operation",
+    answerFor: "Answer for number",
+
+    operations: {
+      addition: "Addition (+)",
+      subtraction: "Subtraction (-)",
+      multiplication: "Multiplication (×)",
+      division: "Division (÷)"
+    },
+
     difficulties: {
       "0-9": "0-9",
       "0-20": "0-20",
@@ -163,7 +216,24 @@ export const TRANSLATIONS: Record<string, Translations> = {
     customRange: "自定义范围",
     quantity: "数量",
     startExercise: "开始练习",
-    
+
+    modes: {
+      numberDictation: "数字听写",
+      mathDictation: "运算听写"
+    },
+
+    operationTypes: "运算类型",
+    maxResult: "答案最大值",
+    selectAtLeastOneOperation: "请至少选择一种运算类型",
+    answerFor: "答案",
+
+    operations: {
+      addition: "加法 (+)",
+      subtraction: "减法 (-)",
+      multiplication: "乘法 (×)",
+      division: "除法 (÷)"
+    },
+
     difficulties: {
       "0-9": "0-9",
       "0-20": "0-20",
