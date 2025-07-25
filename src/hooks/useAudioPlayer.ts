@@ -15,6 +15,7 @@ export function useAudioPlayer({ items, onPlaybackComplete }: UseAudioPlayerProp
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [playbackInterval, setPlaybackInterval] = useState(1.0);
   const [voiceWarning, setVoiceWarning] = useState<string | null>(null);
+  const [playedItems, setPlayedItems] = useState<boolean[]>(Array(items.length).fill(false));
 
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const currentSpeechIndex = useRef(0);
@@ -72,12 +73,13 @@ export function useAudioPlayer({ items, onPlaybackComplete }: UseAudioPlayerProp
 
     const checkVoices = () => {
       const voices = window.speechSynthesis.getVoices();
+
       if (voices.length === 0) {
         setTimeout(checkVoices, 100);
         return;
       }
 
-      const frenchVoice = voices.find(v => 
+      const frenchVoice = voices.find(v =>
         /fr.*fr/i.test(v.lang) || /french/i.test(v.name) || /fr/i.test(v.lang)
       );
 
@@ -90,6 +92,8 @@ export function useAudioPlayer({ items, onPlaybackComplete }: UseAudioPlayerProp
 
     checkVoices();
   }, [translations]);
+
+
 
   const playCurrentItem = useCallback((speed?: number) => {
     const index = currentSpeechIndex.current;
@@ -104,9 +108,18 @@ export function useAudioPlayer({ items, onPlaybackComplete }: UseAudioPlayerProp
 
     setCurrentPlayingIndex(index);
 
+    // 标记该项目已播放
+    setPlayedItems(prev => {
+      const newPlayed = [...prev];
+      newPlayed[index] = true;
+      return newPlayed;
+    });
+
     const text = items[index];
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'fr-FR';
+    utterance.volume = 1;
+    utterance.pitch = 1;
 
     const frenchVoice = getFrenchVoice();
     if (frenchVoice) {
@@ -118,19 +131,24 @@ export function useAudioPlayer({ items, onPlaybackComplete }: UseAudioPlayerProp
     utterance.onend = () => {
       if (playbackTimeoutRef.current) {
         clearTimeout(playbackTimeoutRef.current);
+        playbackTimeoutRef.current = null;
       }
 
+      // 确保只有在仍在播放状态时才继续
       if (isPlayingRef.current) {
         if (index + 1 < items.length) {
           currentSpeechIndex.current = index + 1;
           playbackTimeoutRef.current = setTimeout(() => {
+            // 再次检查播放状态
             if (isPlayingRef.current) {
               playCurrentItem();
             }
           }, playbackInterval * 1000);
         } else {
+          // 播放完成
           setCurrentPlayingIndex(items.length);
           updatePlaybackState('idle');
+          currentSpeechIndex.current = 0;
           if (onPlaybackComplete) {
             onPlaybackComplete();
           }
@@ -147,6 +165,8 @@ export function useAudioPlayer({ items, onPlaybackComplete }: UseAudioPlayerProp
         updatePlaybackState('idle');
       }
     };
+
+
 
     utteranceRef.current = utterance;
     window.speechSynthesis.speak(utterance);
@@ -166,6 +186,12 @@ export function useAudioPlayer({ items, onPlaybackComplete }: UseAudioPlayerProp
   }, [items, updatePlaybackState, playCurrentItem]);
 
   const handlePlayPause = useCallback(() => {
+    // 确保语音合成可用
+    if (!window.speechSynthesis) {
+      setVoiceWarning(translations.warnings.noSpeechSupport);
+      return;
+    }
+
     if (audioState === 'idle') {
       checkVoiceSupport();
     }
@@ -178,6 +204,11 @@ export function useAudioPlayer({ items, onPlaybackComplete }: UseAudioPlayerProp
         playbackTimeoutRef.current = null;
       }
     } else {
+      // 在开始播放前，先测试语音合成是否工作
+      const testUtterance = new SpeechSynthesisUtterance('');
+      testUtterance.volume = 0;
+      window.speechSynthesis.speak(testUtterance);
+
       if (audioState === 'paused') {
         updatePlaybackState('playing');
         playCurrentItem();
@@ -185,7 +216,7 @@ export function useAudioPlayer({ items, onPlaybackComplete }: UseAudioPlayerProp
         startPlayback(0);
       }
     }
-  }, [audioState, updatePlaybackState, playCurrentItem, startPlayback, checkVoiceSupport]);
+  }, [audioState, updatePlaybackState, playCurrentItem, startPlayback, checkVoiceSupport, translations]);
 
   const handleReplay = useCallback(() => {
     window.speechSynthesis.cancel();
@@ -268,6 +299,23 @@ export function useAudioPlayer({ items, onPlaybackComplete }: UseAudioPlayerProp
   }, [playbackSpeed]);
 
   useEffect(() => {
+    // 当items变化时重置播放状态
+    // 先停止当前播放
+    window.speechSynthesis.cancel();
+    if (playbackTimeoutRef.current) {
+      clearTimeout(playbackTimeoutRef.current);
+      playbackTimeoutRef.current = null;
+    }
+
+    // 重置状态
+    setAudioState('idle');
+    setPlayedItems(Array(items.length).fill(false));
+    setCurrentPlayingIndex(0);
+    currentSpeechIndex.current = 0;
+    isPlayingRef.current = false;
+  }, [items]);
+
+  useEffect(() => {
     return () => {
       isPlayingRef.current = false;
       window.speechSynthesis.cancel();
@@ -289,6 +337,7 @@ export function useAudioPlayer({ items, onPlaybackComplete }: UseAudioPlayerProp
     playbackSpeed,
     playbackInterval,
     voiceWarning,
+    playedItems,
     handlePlayPause,
     handleReplay,
     handleSpeedChange,

@@ -7,17 +7,25 @@ interface UseInputNavigationProps {
 
 export function useInputNavigation({ totalItems, getMaxLength }: UseInputNavigationProps) {
   const [userAnswers, setUserAnswers] = useState<string[]>(Array(totalItems).fill(''));
+  const [placeholderStates, setPlaceholderStates] = useState<boolean[]>(Array(totalItems).fill(false));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const value = e.target.value.replace(/[^0-9]/g, '');
     const maxLength = getMaxLength(index);
     const truncatedValue = value.slice(0, maxLength);
-    
+
     setUserAnswers(prev => {
       const newAnswers = [...prev];
       newAnswers[index] = truncatedValue;
       return newAnswers;
+    });
+
+    // 清除占位符状态
+    setPlaceholderStates(prev => {
+      const newStates = [...prev];
+      newStates[index] = false;
+      return newStates;
     });
 
     // 自动跳转到下一个输入框
@@ -30,7 +38,23 @@ export function useInputNavigation({ totalItems, getMaxLength }: UseInputNavigat
   }, [totalItems, getMaxLength]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
-    if (e.key === 'Enter') {
+    if (e.key === ' ') {
+      e.preventDefault();
+      // 设置占位符状态
+      setPlaceholderStates(prev => {
+        const newStates = [...prev];
+        newStates[index] = true;
+        return newStates;
+      });
+
+      // 自动跳转到下一个输入框
+      if (index < totalItems - 1) {
+        const nextInput = inputRefs.current[index + 1];
+        if (nextInput) {
+          nextInput.focus();
+        }
+      }
+    } else if (e.key === 'Enter') {
       e.preventDefault();
       if (index < totalItems - 1) {
         const nextInput = inputRefs.current[index + 1];
@@ -90,6 +114,7 @@ export function useInputNavigation({ totalItems, getMaxLength }: UseInputNavigat
 
   const resetAnswers = useCallback(() => {
     setUserAnswers(Array(totalItems).fill(''));
+    setPlaceholderStates(Array(totalItems).fill(false));
   }, [totalItems]);
 
   const setInputRef = useCallback((index: number) => (el: HTMLInputElement | null) => {
@@ -98,10 +123,12 @@ export function useInputNavigation({ totalItems, getMaxLength }: UseInputNavigat
 
   return {
     userAnswers,
+    placeholderStates,
     handleInputChange,
     handleKeyDown,
     resetAnswers,
     setInputRef,
-    setUserAnswers
+    setUserAnswers,
+    setPlaceholderStates
   };
 }

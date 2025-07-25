@@ -59,6 +59,16 @@ export interface Translations {
     noVoiceFound: string;
     voiceError: string;
   };
+
+  restartModal: {
+    title: string;
+    message: string;
+    retestCurrent: string;
+    newPractice: string;
+    returnHome: string;
+  };
+
+  congratulations: string;
 }
 
 export const SUPPORTED_LANGUAGES: Language[] = [
@@ -141,7 +151,17 @@ export const TRANSLATIONS: Record<string, Translations> = {
       noSpeechSupport: "Votre navigateur ne supporte pas la synthèse vocale",
       noVoiceFound: "Aucune voix française trouvée, utilisation de la voix par défaut",
       voiceError: "Erreur vocale"
-    }
+    },
+
+    restartModal: {
+      title: "Recommencer",
+      message: "Que souhaitez-vous faire ?",
+      retestCurrent: "Refaire cette pratique",
+      newPractice: "Nouvelle pratique",
+      returnHome: "Retour à l'accueil"
+    },
+
+    congratulations: "Félicitations ! Parfait !"
   },
   
   en: {
@@ -203,9 +223,19 @@ export const TRANSLATIONS: Record<string, Translations> = {
     
     warnings: {
       noSpeechSupport: "Your browser does not support speech synthesis",
-      noVoiceFound: "No French voice found, using default voice", 
+      noVoiceFound: "No French voice found, using default voice",
       voiceError: "Speech error"
-    }
+    },
+
+    restartModal: {
+      title: "Restart",
+      message: "What would you like to do?",
+      retestCurrent: "Retest Current",
+      newPractice: "New Practice",
+      returnHome: "Return Home"
+    },
+
+    congratulations: "Congratulations! Perfect!"
   },
 
   zh: {
@@ -269,6 +299,16 @@ export const TRANSLATIONS: Record<string, Translations> = {
       noSpeechSupport: "您的浏览器不支持语音合成",
       noVoiceFound: "未找到法语语音，使用默认语音",
       voiceError: "语音错误"
-    }
+    },
+
+    restartModal: {
+      title: "重新开始",
+      message: "您希望做什么？",
+      retestCurrent: "重测当前",
+      newPractice: "新练习",
+      returnHome: "返回主页"
+    },
+
+    congratulations: "恭喜！完美！"
   }
 };

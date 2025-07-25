@@ -1,0 +1,155 @@
+import { useEffect, useCallback, useState } from 'react';
+import { playSound, playCelebration, initAudioOnUserInteraction } from '../utils/audioEffects';
+import { useLanguage } from './useLanguage';
+
+interface UseGameEffectsProps {
+  userAnswers: string[];
+  correctAnswers: (number | string)[];
+  isSubmitted: boolean;
+}
+
+export const useGameEffects = ({ userAnswers, correctAnswers, isSubmitted }: UseGameEffectsProps) => {
+  const { translations } = useLanguage();
+  const [showCelebration, setShowCelebration] = useState(false);
+
+  // 检查是否全部正确
+  const checkAllCorrect = useCallback(() => {
+    if (!isSubmitted || userAnswers.length === 0) return false;
+    
+    return userAnswers.every((answer, index) => {
+      const correctAnswer = correctAnswers[index];
+      return answer === correctAnswer?.toString();
+    });
+  }, [userAnswers, correctAnswers, isSubmitted]);
+
+  // 创建礼炮动画元素
+  const createConfetti = useCallback(() => {
+    const overlay = document.createElement('div');
+    overlay.className = 'celebration-overlay';
+    
+    // 创建彩纸
+    for (let i = 0; i < 50; i++) {
+      const confetti = document.createElement('div');
+      confetti.className = 'confetti';
+      confetti.style.left = Math.random() * 100 + '%';
+      confetti.style.animationDelay = Math.random() * 3 + 's';
+      confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+      overlay.appendChild(confetti);
+    }
+
+    // 创建烟花效果
+    for (let i = 0; i < 20; i++) {
+      const firework = document.createElement('div');
+      firework.className = 'firework';
+      firework.style.left = Math.random() * 100 + '%';
+      firework.style.top = Math.random() * 100 + '%';
+      firework.style.backgroundColor = [
+        '#3b82f6', '#22c55e', '#fbbf24', '#f472b6', '#a78bfa'
+      ][Math.floor(Math.random() * 5)];
+      firework.style.animationDelay = Math.random() * 2 + 's';
+      overlay.appendChild(firework);
+    }
+
+    // 创建庆祝文字
+    const celebrationText = document.createElement('div');
+    celebrationText.className = 'celebration-text';
+    celebrationText.textContent = '🎉 ' + translations.congratulations + ' 🎉';
+    overlay.appendChild(celebrationText);
+
+    document.body.appendChild(overlay);
+
+    // 3秒后移除动画
+    setTimeout(() => {
+      if (overlay.parentNode) {
+        overlay.parentNode.removeChild(overlay);
+      }
+    }, 3000);
+  }, [translations]);
+
+  // 播放庆祝效果
+  const triggerCelebration = useCallback(() => {
+    setShowCelebration(true);
+    createConfetti();
+    playCelebration();
+    
+    // 重置庆祝状态
+    setTimeout(() => {
+      setShowCelebration(false);
+    }, 3000);
+  }, [createConfetti]);
+
+  // 播放交互音效
+  const playInteractionSound = useCallback((type: 'click' | 'hover' | 'input' | 'submit') => {
+    playSound(type);
+  }, []);
+
+  // 监听提交状态变化
+  useEffect(() => {
+    if (isSubmitted && checkAllCorrect()) {
+      triggerCelebration();
+    }
+  }, [isSubmitted, checkAllCorrect, triggerCelebration]);
+
+  // 初始化音频上下文
+  useEffect(() => {
+    initAudioOnUserInteraction();
+  }, []);
+
+  // 为按钮添加音效事件监听器
+  useEffect(() => {
+    const addSoundToButtons = () => {
+      // 为所有按钮添加点击音效
+      const buttons = document.querySelectorAll('button');
+      buttons.forEach(button => {
+        const handleClick = () => playSound('click');
+        const handleMouseEnter = () => playSound('hover');
+        
+        button.addEventListener('click', handleClick);
+        button.addEventListener('mouseenter', handleMouseEnter);
+        
+        // 清理函数
+        return () => {
+          button.removeEventListener('click', handleClick);
+          button.removeEventListener('mouseenter', handleMouseEnter);
+        };
+      });
+
+      // 为输入框添加输入音效
+      const inputs = document.querySelectorAll('input[type="text"]');
+      inputs.forEach(input => {
+        const handleInput = () => playSound('input');
+        input.addEventListener('input', handleInput);
+        
+        return () => {
+          input.removeEventListener('input', handleInput);
+        };
+      });
+    };
+
+    // 延迟添加事件监听器，确保DOM已渲染
+    const timeoutId = setTimeout(addSoundToButtons, 100);
+    
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [isSubmitted]); // 当提交状态改变时重新添加监听器
+
+  // 检查单个答案的正确性并播放相应音效
+  const checkAnswerSound = useCallback((index: number, answer: string) => {
+    if (!isSubmitted) return;
+    
+    const correctAnswer = correctAnswers[index];
+    if (answer === correctAnswer?.toString()) {
+      playSound('success');
+    } else if (answer && answer !== correctAnswer?.toString()) {
+      playSound('error');
+    }
+  }, [correctAnswers, isSubmitted]);
+
+  return {
+    showCelebration,
+    playInteractionSound,
+    checkAnswerSound,
+    triggerCelebration
+  };
+};

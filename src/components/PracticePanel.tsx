@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Exercise, ExerciseSettings } from '../types/exercise';
 import { useLanguage } from '../hooks/useLanguage';
 import { useAudioPlayer } from '../hooks/useAudioPlayer';
 import { useInputNavigation } from '../hooks/useInputNavigation';
+import { useGameEffects } from '../hooks/useGameEffects';
+import { useGlobalAudioEffects } from '../hooks/useGlobalAudioEffects';
 import { AudioControls } from './AudioControls';
 import { PracticeGrid } from './PracticeGrid';
+import { RestartModal } from './RestartModal';
 import { generateNumbers } from '../utils/numberGeneration';
 import { generateMathProblems } from '../utils/mathOperations';
 
@@ -20,6 +23,7 @@ export const PracticePanel: React.FC<PracticePanelProps> = ({ settings, onReset 
   const [exercise, setExercise] = useState<Exercise | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
+  const [showRestartModal, setShowRestartModal] = useState(false);
 
   // 生成练习内容
   useEffect(() => {
@@ -53,12 +57,14 @@ export const PracticePanel: React.FC<PracticePanelProps> = ({ settings, onReset 
     }
   }, [settings]);
 
-  // 准备音频播放的文本数组
-  const audioTexts = exercise ? (
-    exercise.mode === 'number' 
+  // 准备音频播放的文本数组 - 使用useMemo避免无限循环
+  const audioTexts = useMemo(() => {
+    if (!exercise) return [];
+
+    return exercise.mode === 'number'
       ? exercise.numbers.map(n => n.toString())
-      : exercise.problems.map(p => p.displayText)
-  ) : [];
+      : exercise.problems.map(p => p.displayText);
+  }, [exercise]);
 
   // 准备答案数组
   const correctAnswers = exercise ? (
@@ -80,6 +86,7 @@ export const PracticePanel: React.FC<PracticePanelProps> = ({ settings, onReset 
     playbackSpeed,
     playbackInterval,
     voiceWarning,
+    playedItems,
     handlePlayPause,
     handleReplay,
     handleSpeedChange,
@@ -94,6 +101,7 @@ export const PracticePanel: React.FC<PracticePanelProps> = ({ settings, onReset 
 
   const {
     userAnswers,
+    placeholderStates,
     handleInputChange,
     handleKeyDown,
     setInputRef,
@@ -103,20 +111,73 @@ export const PracticePanel: React.FC<PracticePanelProps> = ({ settings, onReset 
     getMaxLength
   });
 
+  // 游戏化效果
+  const { playInteractionSound: playGameSound } = useGameEffects({
+    userAnswers,
+    correctAnswers,
+    isSubmitted
+  });
+
+  // 全局音效
+  const { playInteractionSound } = useGlobalAudioEffects();
+
   // 重置答案当练习改变时
   useEffect(() => {
     if (exercise) {
-      setUserAnswers(Array(correctAnswers.length).fill(''));
+      const newAnswersLength = correctAnswers.length;
+      setUserAnswers(Array(newAnswersLength).fill(''));
       setIsSubmitted(false);
       setCurrentPage(0);
     }
-  }, [exercise, correctAnswers.length, setUserAnswers]);
+  }, [exercise]);
 
   const handleSubmit = () => {
     if (audioState === 'playing') {
       stopPlayback();
     }
+    playGameSound('submit');
     setIsSubmitted(true);
+  };
+
+  const handleRestartClick = () => {
+    setShowRestartModal(true);
+  };
+
+  const handleRetestCurrent = () => {
+    // 重测当前题目，只重置答案
+    setUserAnswers(Array(correctAnswers.length).fill(''));
+    setIsSubmitted(false);
+    setCurrentPage(0);
+    setShowRestartModal(false);
+  };
+
+  const handleNewPractice = () => {
+    // 重新生成练习内容
+    let newExercise: Exercise;
+
+    if (settings.mode === 'number') {
+      const numbers = generateNumbers(settings.range, settings.quantity);
+      newExercise = {
+        mode: 'number',
+        numbers
+      };
+    } else {
+      const problems = generateMathProblems(settings.operations, settings.quantity, settings.maxResult);
+      newExercise = {
+        mode: 'math',
+        problems
+      };
+    }
+
+    // 先关闭弹窗
+    setShowRestartModal(false);
+
+    // 更新练习内容（这会触发useEffect重置其他状态）
+    setExercise(newExercise);
+  };
+
+  const handleReturnHome = () => {
+    onReset();
   };
 
   if (!exercise) {
@@ -144,6 +205,8 @@ export const PracticePanel: React.FC<PracticePanelProps> = ({ settings, onReset 
       <PracticeGrid
         items={correctAnswers}
         userAnswers={userAnswers}
+        placeholderStates={placeholderStates}
+        playedItems={playedItems}
         isSubmitted={isSubmitted}
         currentPlayingIndex={currentPlayingIndex}
         audioState={audioState}
@@ -156,40 +219,53 @@ export const PracticePanel: React.FC<PracticePanelProps> = ({ settings, onReset 
       />
 
       <div className="practice-actions">
-        {isSubmitted ? (
-          <button onClick={onReset} className="button button-primary">
-            {translations.restart}
-          </button>
-        ) : (
-          <div/> // Placeholder for alignment
-        )}
-        
+        {/* 左侧：返回主页按钮 */}
+        <button
+          onClick={handleReturnHome}
+          className="button button-secondary"
+        >
+          {translations.restartModal.returnHome}
+        </button>
+
+        {/* 中间：分页控件 */}
         {totalPages > 1 && (
           <div className="pagination-controls">
-            <button 
-              className="button" 
-              onClick={() => setCurrentPage(p => p - 1)} 
+            <button
+              className="button"
+              onClick={() => setCurrentPage(p => p - 1)}
               disabled={currentPage === 0}
             >
               {translations.previous}
             </button>
             <span>{translations.page} {currentPage + 1} / {totalPages}</span>
-            <button 
-              className="button" 
-              onClick={() => setCurrentPage(p => p + 1)} 
+            <button
+              className="button"
+              onClick={() => setCurrentPage(p => p + 1)}
               disabled={currentPage === totalPages - 1}
             >
               {translations.next}
             </button>
           </div>
         )}
-        
-        {!isSubmitted && (
+
+        {/* 右侧：提交或重新开始按钮 */}
+        {isSubmitted ? (
+          <button onClick={handleRestartClick} className="button button-primary">
+            {translations.restart}
+          </button>
+        ) : (
           <button onClick={handleSubmit} className="button button-primary">
             {translations.submit}
           </button>
         )}
       </div>
+
+      <RestartModal
+        isOpen={showRestartModal}
+        onClose={() => setShowRestartModal(false)}
+        onRetestCurrent={handleRetestCurrent}
+        onNewPractice={handleNewPractice}
+      />
     </div>
   );
 };

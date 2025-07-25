@@ -14,6 +14,7 @@ interface AudioControlsProps {
   onReplay: () => void;
   onSpeedChange: (speed: number) => void;
   onIntervalChange: (interval: number) => void;
+
 }
 
 export const AudioControls: React.FC<AudioControlsProps> = ({
@@ -58,13 +59,15 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
           {audioState === 'playing' ? translations.pause : translations.play}
         </button>
         
-        <button 
-          className="button" 
-          onClick={onReplay} 
+        <button
+          className="button"
+          onClick={onReplay}
           disabled={isSubmitted}
         >
           {translations.replay}
         </button>
+
+
         
         <div className="speed-control">
           <label htmlFor="speed">{translations.speed}</label>

@@ -26,6 +26,8 @@ const FeedbackCell: React.FC<FeedbackCellProps> = ({ userAnswer, correctAnswer }
 interface PracticeGridProps {
   items: (number | string)[];
   userAnswers: string[];
+  placeholderStates: boolean[];
+  playedItems: boolean[];
   isSubmitted: boolean;
   currentPlayingIndex: number;
   audioState: 'idle' | 'playing' | 'paused';
@@ -40,6 +42,8 @@ interface PracticeGridProps {
 export const PracticeGrid: React.FC<PracticeGridProps> = ({
   items,
   userAnswers,
+  placeholderStates,
+  playedItems,
   isSubmitted,
   currentPlayingIndex,
   audioState,
@@ -71,16 +75,23 @@ export const PracticeGrid: React.FC<PracticeGridProps> = ({
                 correctAnswer={item} 
               />
             ) : (
-              <input
-                ref={setInputRef(globalIndex)}
-                type="text"
-                className="input"
-                value={userAnswers[globalIndex] || ''}
-                onChange={(e) => onInputChange(e, globalIndex)}
-                onKeyDown={(e) => onKeyDown(e, globalIndex)}
-                maxLength={getMaxLength(globalIndex)}
-                aria-label={`${translations.answerFor} ${globalIndex + 1}`}
-              />
+              <div className="input-container">
+                <input
+                  ref={setInputRef(globalIndex)}
+                  type="text"
+                  className="input"
+                  value={userAnswers[globalIndex] || ''}
+                  onChange={(e) => onInputChange(e, globalIndex)}
+                  onKeyDown={(e) => onKeyDown(e, globalIndex)}
+                  maxLength={getMaxLength(globalIndex)}
+                  aria-label={`${translations.answerFor} ${globalIndex + 1}`}
+                />
+                {placeholderStates[globalIndex] &&
+                 playedItems[globalIndex] &&
+                 !userAnswers[globalIndex] && (
+                  <span className="placeholder-question">❓</span>
+                )}
+              </div>
             )}
           </div>
         );
