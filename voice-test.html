@@ -123,7 +123,6 @@
             
             const voices = window.speechSynthesis.getVoices();
             
-            // Rechercher toutes les voix françaises
             return voices.filter(voice => {
                 const isFrench = /fr/i.test(voice.lang) || /french/i.test(voice.name);
                 return isFrench;
@@ -131,12 +130,10 @@
         }
         
         function getFrenchVoice() {
-            // Si l'utilisateur a sélectionné une voix spécifique, l'utiliser
             if (selectedVoice) {
                 return selectedVoice;
             }
-            
-            // Sinon utiliser la logique par défaut
+
             const frenchVoices = getAllFrenchVoices();
             return frenchVoices.length > 0 ? frenchVoices[0] : null;
         }
@@ -145,7 +142,6 @@
             const select = document.getElementById('voiceSelect');
             const frenchVoices = getAllFrenchVoices();
 
-            // Vider les options existantes (garder l'option par défaut)
             select.innerHTML = '<option value="">Voix par défaut</option>';
 
             frenchVoices.forEach((voice, index) => {
@@ -162,7 +158,6 @@
                 select.appendChild(option);
             }
 
-            // Restaurer la voix sauvegardée si elle existe
             restoreSavedVoice();
         }
 
@@ -174,7 +169,6 @@
                     const frenchVoices = getAllFrenchVoices();
                     const select = document.getElementById('voiceSelect');
 
-                    // Trouver la voix correspondante
                     const matchingVoiceIndex = frenchVoices.findIndex(voice =>
                         voice.voiceURI === voiceData.voiceURI ||
                         (voice.name === voiceData.name && voice.lang === voiceData.lang)
@@ -186,7 +180,6 @@
                         showInfo(`Voix restaurée: ${selectedVoice.name} (${selectedVoice.lang})`);
                         updateSavedVoiceStatus();
                     } else {
-                        // La voix sauvegardée n'est plus disponible
                         localStorage.removeItem('selectedFrenchVoice');
                         showWarning('La voix sauvegardée n\'est plus disponible');
                         updateSavedVoiceStatus();
@@ -241,7 +234,6 @@
                 const voiceIndex = parseInt(select.value);
                 selectedVoice = frenchVoices[voiceIndex];
 
-                // Sauvegarder la voix sélectionnée dans le stockage local
                 const voiceData = {
                     name: selectedVoice.name,
                     lang: selectedVoice.lang,
@@ -252,7 +244,6 @@
                 showInfo(`Voix sélectionnée et sauvegardée: ${selectedVoice.name} (${selectedVoice.lang})`);
             }
 
-            // 更新保存状态显示
             updateSavedVoiceStatus();
         }
         
@@ -380,14 +371,12 @@
             voiceList.style.display = 'block';
         }
         
-        // Vérifier le support vocal lors du chargement de la page
         window.addEventListener('load', () => {
             if (!window.speechSynthesis) {
                 showWarning('Votre navigateur ne supporte pas Web Speech API');
                 return;
             }
             
-            // Attendre le chargement de la liste des voix
             function checkVoices() {
                 const voices = window.speechSynthesis.getVoices();
                 if (voices.length === 0) {
@@ -395,7 +384,6 @@
                     return;
                 }
                 
-                // Remplir le sélecteur de voix
                 populateVoiceSelector();
                 
                 const frenchVoices = getAllFrenchVoices();
@@ -409,7 +397,6 @@
             checkVoices();
         });
         
-        // Écouter les changements de liste de voix (nécessaire pour iOS Safari)
         window.speechSynthesis.onvoiceschanged = () => {
             console.log('Liste des voix mise à jour');
             populateVoiceSelector();
