@@ -271,11 +271,11 @@
             };
             
             utterance.onstart = () => {
-                console.log('Lecture commencée');
+                console.log('Lecture commencée / Reading started / 开始朗读');
             };
-            
+
             utterance.onend = () => {
-                console.log('Lecture terminée');
+                console.log('Lecture terminée / Reading finished / 朗读完成');
             };
             
             window.speechSynthesis.speak(utterance);
@@ -398,7 +398,7 @@
         });
         
         window.speechSynthesis.onvoiceschanged = () => {
-            console.log('Liste des voix mise à jour');
+            console.log('Liste des voix mise à jour / Voice list updated / 语音列表已更新');
             populateVoiceSelector();
         };
     </script>

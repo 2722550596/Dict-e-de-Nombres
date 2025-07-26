@@ -10,7 +10,7 @@
   --border-color: #cbd5e1;
   --border-focus-color: #60a5fa;
 
-  --font-family: 'Inter', sans-serif;
+  --font-family: 'Poppins', sans-serif;
   --border-radius: 0.5rem;
   --box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
@@ -25,27 +25,25 @@ body {
   font-family: var(--font-family);
   background-color: var(--background-color);
   color: var(--text-color);
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
   min-height: 100vh;
-  padding: 2rem 1rem;
+  margin: 0;
+  padding: 0;
 }
 
 #root {
   width: 100%;
-  max-width: 1000px;
+  min-height: 100vh;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
 }
 
 .app-container {
+  flex: 1;
   width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
   background-color: var(--surface-color);
-  border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow);
   padding: 2rem;
-  transition: all 0.3s ease-in-out;
   position: relative;
 }
 
@@ -111,7 +109,7 @@ body {
   justify-content: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
-  z-index: 1000;
+  z-index: 900;
 }
 
 .debug-button:hover {
@@ -176,6 +174,22 @@ h1 {
   gap: 1.5rem;
 }
 
+.settings-panel-container {
+  position: relative;
+}
+
+.settings-panel-wrapper {
+  width: 100%;
+}
+
+.settings-panel-wrapper.active {
+  display: block;
+}
+
+.settings-panel-wrapper.hidden {
+  display: none;
+}
+
 /* Operation Checkboxes */
 .operation-checkboxes {
   display: grid;
@@ -224,10 +238,70 @@ h1 {
   transition: border-color 0.2s;
 }
 
+.input:hover, .select:hover {
+  border-color: var(--border-focus-color);
+}
+
 .input:focus, .select:focus {
   outline: none;
   border-color: var(--border-focus-color);
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+/* 智能推荐样式 */
+.recommendation-banner {
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  color: #1a1a1a;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid #fbbf24;
+  box-shadow: 0 2px 4px rgba(255, 215, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
+.recommendation-text {
+  flex: 1;
+  margin-right: 8px;
+}
+
+.recommendation-clear-btn {
+  background: none;
+  border: none;
+  color: #1a1a1a;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  opacity: 0.7;
+  line-height: 1;
+  min-width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.recommendation-clear-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.recommendation-clear-btn:active {
+  transform: scale(0.95);
+}
+
+.recommended-option {
+  background: rgba(255, 215, 0, 0.1) !important;
+  font-weight: 600 !important;
 }
 
 .custom-range-inputs {
@@ -254,6 +328,14 @@ h1 {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  /* 默认样式：类似于button-secondary */
+  background-color: var(--border-color);
+  color: var(--text-color);
+}
+
+.button:hover {
+  background-color: var(--text-light-color);
+  color: white;
 }
 
 .button-primary {
@@ -767,7 +849,7 @@ h1 {
   justify-content: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
-  z-index: 1000;
+  z-index: 900;
 }
 
 .volume-button:hover {
@@ -790,7 +872,7 @@ h1 {
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  z-index: 1000;
+  z-index: 950;
   min-width: 120px;
 }
 

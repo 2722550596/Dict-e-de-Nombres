@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useLanguage } from './useLanguage';
+import { playSound } from '../utils/audioEffects';
 
 export type AudioState = 'idle' | 'playing' | 'paused';
 
@@ -68,6 +69,7 @@ export function useAudioPlayer({ items, onPlaybackComplete }: UseAudioPlayerProp
   const checkVoiceSupport = useCallback(() => {
     if (!window.speechSynthesis) {
       setVoiceWarning(translations.warnings.noSpeechSupport);
+      playSound('error'); // 播放错误音效
       return;
     }
 
@@ -85,6 +87,7 @@ export function useAudioPlayer({ items, onPlaybackComplete }: UseAudioPlayerProp
 
       if (!frenchVoice) {
         setVoiceWarning(translations.warnings.noVoiceFound);
+        playSound('error'); // 播放错误音效
       } else {
         setVoiceWarning(null);
       }
@@ -157,8 +160,9 @@ export function useAudioPlayer({ items, onPlaybackComplete }: UseAudioPlayerProp
     };
 
     utterance.onerror = (event) => {
-      console.error('Speech synthesis error:', event.error);
+      console.error(translations.console.speechSynthesisError, event.error);
       if (event.error !== 'canceled' && event.error !== 'interrupted') {
+        playSound('error'); // 语音合成错误时播放错误音效
         if (event.error === 'language-unavailable' || event.error === 'voice-unavailable') {
           setVoiceWarning(translations.warnings.noVoiceFound);
         }
@@ -189,6 +193,7 @@ export function useAudioPlayer({ items, onPlaybackComplete }: UseAudioPlayerProp
     // 确保语音合成可用
     if (!window.speechSynthesis) {
       setVoiceWarning(translations.warnings.noSpeechSupport);
+      playSound('error'); // 播放错误音效
       return;
     }
 
@@ -197,6 +202,7 @@ export function useAudioPlayer({ items, onPlaybackComplete }: UseAudioPlayerProp
     }
 
     if (audioState === 'playing') {
+      playSound('click'); // 暂停时播放点击音效
       updatePlaybackState('paused');
       window.speechSynthesis.cancel();
       if (playbackTimeoutRef.current) {
@@ -204,6 +210,7 @@ export function useAudioPlayer({ items, onPlaybackComplete }: UseAudioPlayerProp
         playbackTimeoutRef.current = null;
       }
     } else {
+      playSound('navigation'); // 开始播放时播放导航音效
       // 在开始播放前，先测试语音合成是否工作
       const testUtterance = new SpeechSynthesisUtterance('');
       testUtterance.volume = 0;
@@ -219,6 +226,7 @@ export function useAudioPlayer({ items, onPlaybackComplete }: UseAudioPlayerProp
   }, [audioState, updatePlaybackState, playCurrentItem, startPlayback, checkVoiceSupport, translations]);
 
   const handleReplay = useCallback(() => {
+    playSound('navigation'); // 重播时播放导航音效
     window.speechSynthesis.cancel();
     if (playbackTimeoutRef.current) {
       clearTimeout(playbackTimeoutRef.current);
@@ -228,6 +236,7 @@ export function useAudioPlayer({ items, onPlaybackComplete }: UseAudioPlayerProp
   }, [startPlayback]);
 
   const handleSpeedChange = useCallback((newSpeed: number) => {
+    playSound('select'); // 速度调整时播放选择音效
     setPlaybackSpeed(newSpeed);
     playbackSpeedRef.current = newSpeed;
 
@@ -254,6 +263,7 @@ export function useAudioPlayer({ items, onPlaybackComplete }: UseAudioPlayerProp
   }, [audioState, playCurrentItem]);
 
   const handleIntervalChange = useCallback((newInterval: number) => {
+    playSound('select'); // 间隔调整时播放选择音效
     const validInterval = Math.max(0.1, Math.min(10, newInterval || 1.0));
     setPlaybackInterval(validInterval);
 

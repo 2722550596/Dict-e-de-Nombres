@@ -1,5 +1,6 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import { SUPPORTED_LANGUAGES, TRANSLATIONS, Language, Translations } from '../i18n/languages';
+import { playSound } from '../utils/audioEffects';
 
 interface LanguageContextType {
   currentLanguage: Language;
@@ -38,6 +39,7 @@ export const useLanguageProvider = () => {
   const changeLanguage = (languageCode: string) => {
     const language = SUPPORTED_LANGUAGES.find(lang => lang.code === languageCode);
     if (language) {
+      playSound('select'); // 语言切换时播放选择音效
       setCurrentLanguageCode(languageCode);
       localStorage.setItem('selectedLanguage', languageCode);
     }

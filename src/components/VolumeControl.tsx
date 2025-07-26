@@ -1,6 +1,37 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getSoundVolume, setSoundVolume, isSoundMuted, toggleSoundMute, playSound } from '../utils/audioEffects';
 
+// SVG音量图标组件
+const VolumeOffIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="11,5 6,9 2,9 2,15 6,15 11,19 11,5" />
+    <line x1="23" y1="9" x2="17" y2="15" />
+    <line x1="17" y1="9" x2="23" y2="15" />
+  </svg>
+);
+
+const VolumeLowIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="11,5 6,9 2,9 2,15 6,15 11,19 11,5" />
+    <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+  </svg>
+);
+
+const VolumeMediumIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="11,5 6,9 2,9 2,15 6,15 11,19 11,5" />
+    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
+  </svg>
+);
+
+const VolumeHighIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="11,5 6,9 2,9 2,15 6,15 11,19 11,5" />
+    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
+    <path d="M23 2a12.93 12.93 0 0 1 0 20" />
+  </svg>
+);
+
 export const VolumeControl: React.FC = () => {
   const [volume, setVolume] = useState(getSoundVolume());
   const [isMuted, setIsMuted] = useState(isSoundMuted());
@@ -67,13 +98,13 @@ export const VolumeControl: React.FC = () => {
 
   const getVolumeIcon = () => {
     if (isMuted || volume === 0) {
-      return '🔇'; // 静音
+      return <VolumeOffIcon />; // 静音
     } else if (volume < 0.3) {
-      return '🔈'; // 低音量
+      return <VolumeLowIcon />; // 低音量
     } else if (volume < 0.7) {
-      return '🔉'; // 中音量
+      return <VolumeMediumIcon />; // 中音量
     } else {
-      return '🔊'; // 高音量
+      return <VolumeHighIcon />; // 高音量
     }
   };
 

@@ -8,8 +8,11 @@ import { useGlobalAudioEffects } from '../hooks/useGlobalAudioEffects';
 import { AudioControls } from './AudioControls';
 import { PracticeGrid } from './PracticeGrid';
 import { RestartModal } from './RestartModal';
+import { RewardModal } from './RewardModal';
+import { ConfirmModal } from './ConfirmModal';
 import { generateNumbers } from '../utils/numberGeneration';
 import { generateMathProblems } from '../utils/mathOperations';
+import { GameDataManager, RewardInfo } from '../utils/gameData';
 
 const ITEMS_PER_PAGE = 50;
 
@@ -24,6 +27,9 @@ export const PracticePanel: React.FC<PracticePanelProps> = ({ settings, onReset 
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [showRestartModal, setShowRestartModal] = useState(false);
+  const [rewardInfo, setRewardInfo] = useState<RewardInfo | null>(null);
+  const [showRewardModal, setShowRewardModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   // 生成练习内容
   useEffect(() => {
@@ -137,6 +143,21 @@ export const PracticePanel: React.FC<PracticePanelProps> = ({ settings, onReset 
     }
     playGameSound('submit');
     setIsSubmitted(true);
+
+    // 计算奖励
+    if (exercise) {
+      const sessionResults = correctAnswers.map((correctAnswer, index) => ({
+        number: exercise.mode === 'number' ? correctAnswer : exercise.problems[index].operand1,
+        correct: userAnswers[index] === correctAnswer.toString(),
+        userAnswer: userAnswers[index] || '',
+        mode: exercise.mode,
+        operator: exercise.mode === 'math' ? exercise.problems[index].operator : undefined
+      }));
+
+      const reward = GameDataManager.updateSessionResults(sessionResults);
+      setRewardInfo(reward);
+      setShowRewardModal(true);
+    }
   };
 
   const handleRestartClick = () => {
@@ -176,7 +197,18 @@ export const PracticePanel: React.FC<PracticePanelProps> = ({ settings, onReset 
     setExercise(newExercise);
   };
 
-  const handleReturnHome = () => {
+  const handleReturnHomeClick = () => {
+    // 如果已经提交答案，直接返回主页
+    if (isSubmitted) {
+      onReset();
+    } else {
+      // 如果还没提交答案，显示确认弹窗防止误点
+      setShowConfirmModal(true);
+    }
+  };
+
+  const handleConfirmReturnHome = () => {
+    setShowConfirmModal(false);
     onReset();
   };
 
@@ -221,7 +253,7 @@ export const PracticePanel: React.FC<PracticePanelProps> = ({ settings, onReset 
       <div className="practice-actions">
         {/* 左侧：返回主页按钮 */}
         <button
-          onClick={handleReturnHome}
+          onClick={handleReturnHomeClick}
           className="button button-secondary"
         >
           {translations.restartModal.returnHome}
@@ -265,6 +297,22 @@ export const PracticePanel: React.FC<PracticePanelProps> = ({ settings, onReset 
         onClose={() => setShowRestartModal(false)}
         onRetestCurrent={handleRetestCurrent}
         onNewPractice={handleNewPractice}
+      />
+
+      {rewardInfo && (
+        <RewardModal
+          reward={rewardInfo}
+          show={showRewardModal}
+          onClose={() => setShowRewardModal(false)}
+        />
+      )}
+
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        title={translations.confirmModal.returnHomeTitle}
+        message={translations.confirmModal.returnHomeMessage}
+        onConfirm={handleConfirmReturnHome}
+        onCancel={() => setShowConfirmModal(false)}
       />
     </div>
   );

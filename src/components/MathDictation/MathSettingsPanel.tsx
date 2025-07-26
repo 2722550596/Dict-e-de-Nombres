@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../hooks/useLanguage';
 import { ExerciseSettings, MathOperator } from '../../types/exercise';
+import { playSound } from '../../utils/audioEffects';
 
 interface MathSettingsPanelProps {
   onStart: (settings: ExerciseSettings) => void;
@@ -14,6 +15,7 @@ export const MathSettingsPanel: React.FC<MathSettingsPanelProps> = ({ onStart })
   const [customMin, setCustomMin] = useState(0);
   const [customMax, setCustomMax] = useState(9999);
   const [selectedOperations, setSelectedOperations] = useState<MathOperator[]>(['+']);
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   const handleOperationChange = (operation: MathOperator, checked: boolean) => {
     if (checked) {
@@ -25,9 +27,13 @@ export const MathSettingsPanel: React.FC<MathSettingsPanelProps> = ({ onStart })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    // 清除之前的错误消息
+    setErrorMessage('');
+
     if (selectedOperations.length === 0) {
-      alert(translations.selectAtLeastOneOperation);
+      setErrorMessage(translations.selectAtLeastOneOperation);
+      playSound('error'); // 播放错误音效
       return;
     }
 
@@ -167,6 +173,20 @@ export const MathSettingsPanel: React.FC<MathSettingsPanelProps> = ({ onStart })
             max="200" 
           />
         </div>
+
+        {errorMessage && (
+          <div className="error-message" style={{
+            color: '#dc3545',
+            backgroundColor: '#f8d7da',
+            border: '1px solid #f5c6cb',
+            borderRadius: '4px',
+            padding: '8px 12px',
+            marginBottom: '16px',
+            fontSize: '14px'
+          }}>
+            {errorMessage}
+          </div>
+        )}
 
         <button type="submit" className="button button-primary start-button">
           {translations.startExercise}

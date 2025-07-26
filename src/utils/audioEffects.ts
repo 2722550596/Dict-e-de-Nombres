@@ -1,4 +1,6 @@
 // 音效类型定义
+import { TRANSLATIONS } from '../i18n/languages';
+
 export type SoundEffect =
   | 'success'
   | 'error'
@@ -35,6 +37,12 @@ const SOUND_CONFIGS: Record<SoundEffect, SoundConfig> = {
   toggle: { frequency: 450, duration: 0.1, type: 'square', volume: 0.1 }
 };
 
+// 获取当前语言的翻译
+const getCurrentTranslations = () => {
+  const currentLanguage = localStorage.getItem('selectedLanguage') || 'fr';
+  return TRANSLATIONS[currentLanguage] || TRANSLATIONS.fr;
+};
+
 class AudioEffectsManager {
   private audioContext: AudioContext | null = null;
   private enabled: boolean = true;
@@ -51,7 +59,8 @@ class AudioEffectsManager {
     try {
       this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     } catch (error) {
-      console.warn('Web Audio API not supported:', error);
+      const translations = getCurrentTranslations();
+      console.warn(translations.console.webAudioNotSupported, error);
     }
   }
 
@@ -131,7 +140,8 @@ class AudioEffectsManager {
       oscillator.start(this.audioContext.currentTime);
       oscillator.stop(this.audioContext.currentTime + config.duration);
     } catch (error) {
-      console.warn('Failed to generate audio tone:', error);
+      const translations = getCurrentTranslations();
+      console.warn(translations.console.failedToGenerateAudioTone, error);
     }
   }
 
@@ -169,7 +179,8 @@ class AudioEffectsManager {
       gainNode.gain.setValueAtTime(0.3 * this.volume, this.audioContext.currentTime);
       source.start();
     } catch (error) {
-      console.warn('Failed to play audio buffer:', error);
+      const translations = getCurrentTranslations();
+      console.warn(translations.console.failedToPlayAudioBuffer, error);
     }
   }
 
@@ -183,7 +194,8 @@ class AudioEffectsManager {
       const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
       this.loadedSounds.set(effect, audioBuffer);
     } catch (error) {
-      console.warn(`Failed to load sound file for ${effect}:`, error);
+      const translations = getCurrentTranslations();
+      console.warn(`${translations.console.failedToLoadSoundFile} ${effect}:`, error);
     }
   }
 

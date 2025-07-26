@@ -150,7 +150,64 @@ export const ACHIEVEMENT_DEFINITIONS: Achievement[] = [
   }
 ];
 
-// 难度配置
+// 特殊数字类型配置
+export const SPECIAL_NUMBER_CONFIG = {
+  'tens': {
+    name: '整十数',
+    description: '10, 20, 30, ..., 90',
+    difficulty: 'easy',
+    experienceMultiplier: 1.2,
+    category: 'special_patterns'
+  },
+  'years': {
+    name: '年份',
+    description: '1700-2050年份数字',
+    difficulty: 'hard',
+    experienceMultiplier: 2.5,
+    category: 'historical'
+  },
+  'hundreds': {
+    name: '整百数',
+    description: '100, 200, 300, ..., 900',
+    difficulty: 'medium',
+    experienceMultiplier: 1.8,
+    category: 'special_patterns'
+  },
+  'thousands': {
+    name: '整千数',
+    description: '1000, 2000, 3000, ..., 9000',
+    difficulty: 'hard',
+    experienceMultiplier: 2.2,
+    category: 'large_numbers'
+  }
+};
+
+// 数字范围难度配置
+export const RANGE_DIFFICULTY_CONFIG = {
+  // 基础范围 (简单)
+  '0-9': { difficulty: 'easy', experienceMultiplier: 1.0 },
+  '0-16': { difficulty: 'easy', experienceMultiplier: 1.0 },
+  '0-20': { difficulty: 'easy', experienceMultiplier: 1.0 },
+  '0-30': { difficulty: 'easy', experienceMultiplier: 1.1 },
+
+  // 中级范围 (中等)
+  '0-50': { difficulty: 'medium', experienceMultiplier: 1.2 },
+  '0-69': { difficulty: 'medium', experienceMultiplier: 1.3 },
+  '20-69': { difficulty: 'medium', experienceMultiplier: 1.4 },
+  '50-99': { difficulty: 'medium', experienceMultiplier: 1.5 },
+  '70-99': { difficulty: 'medium', experienceMultiplier: 1.6 },
+  '0-99': { difficulty: 'medium', experienceMultiplier: 1.4 },
+
+  // 困难范围 (困难)
+  '100-199': { difficulty: 'hard', experienceMultiplier: 1.8 },
+  '100-999': { difficulty: 'hard', experienceMultiplier: 2.0 },
+  '200-999': { difficulty: 'hard', experienceMultiplier: 2.2 },
+  '1000-1999': { difficulty: 'hard', experienceMultiplier: 2.5 },
+  '1000-9999': { difficulty: 'hard', experienceMultiplier: 3.0 },
+  '1700-2050': { difficulty: 'hard', experienceMultiplier: 2.5 }
+};
+
+// 传统难度配置 (保持向后兼容)
 export const DIFFICULTY_CONFIG = {
   'Facile': {
     name: '简单',

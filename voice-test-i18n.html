@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">Test de Voix Française</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            display: none;
+        }
+        
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            display: none;
+        }
+        
+        .button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        .button:hover {
+            background-color: #0056b3;
+        }
+        
+        .button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        select {
+            width: 100%;
+            padding: 8px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .voice-info {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            display: none;
+        }
+        
+        .voice-list {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            display: none;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .voice-list ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .voice-list li {
+            margin: 5px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .language-selector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .language-selector select {
+            width: auto;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="language-selector">
+        <select id="languageSelect">
+            <option value="fr">🇫🇷 Français</option>
+            <option value="en">🇺🇸 English</option>
+            <option value="zh">🇨🇳 中文</option>
+        </select>
+    </div>
+
+    <div class="container">
+        <h1 id="main-title">Test de Voix Française</h1>
+        
+        <div id="warning" class="warning"></div>
+        <div id="info" class="info"></div>
+        
+        <div class="voice-info" id="savedVoiceStatus">
+            <strong id="saved-voice-label">Voix sauvegardée actuelle:</strong>
+            <span id="savedVoiceInfo"></span>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2 id="voice-selection-title">Sélection de Voix</h2>
+        <label for="voiceSelect" id="select-voice-label">Sélectionner une voix:</label>
+        <select id="voiceSelect">
+            <option id="loading-option">Chargement des voix...</option>
+        </select>
+        
+        <div>
+            <button class="button" id="testVoiceBtn" onclick="testFrenchVoice()" disabled>Tester la voix sélectionnée</button>
+            <button class="button" id="saveVoiceBtn" onclick="saveSelectedVoice()" disabled>Sauvegarder la voix</button>
+            <button class="button" id="clearVoiceBtn" onclick="clearSavedVoice()">Effacer la voix sauvegardée</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2 id="test-section-title">Tests</h2>
+        <button class="button" id="testAllBtn" onclick="testAllFrenchVoices()">Tester toutes les voix françaises</button>
+        <button class="button" id="testNumbersBtn" onclick="testWithNumbers()">Tester avec des nombres</button>
+        <button class="button" id="listVoicesBtn" onclick="listVoices()">Lister toutes les voix</button>
+        
+        <div id="voiceList" class="voice-list"></div>
+    </div>
+
+    <script>
+        // 内嵌翻译系统
+        const TRANSLATIONS = {
+            fr: {
+                voiceTest: {
+                    title: "Test de Voix Française",
+                    browserNotSupported: "Votre navigateur ne supporte pas Web Speech API",
+                    noFrenchVoiceDetected: "Aucune voix française détectée. Sur iOS, allez dans Réglages > Accessibilité > Contenu énoncé > Voix pour ajouter une voix française.",
+                    iosVoiceInstructions: "Sur iOS, allez dans Réglages > Accessibilité > Contenu énoncé > Voix pour ajouter une voix française.",
+                    voiceListUpdated: "Liste des voix mise à jour",
+                    noFrenchVoiceAvailable: "Aucune voix française disponible",
+                    noVoiceFound: "Aucune voix trouvée, veuillez réessayer plus tard",
+                    speechSynthesisNotSupported: "Votre navigateur ne supporte pas la synthèse vocale",
+                    noFrenchVoiceFoundUsingDefault: "Aucune voix française trouvée, utilisation de la voix par défaut",
+                    speechError: "Erreur vocale",
+                    readingStarted: "Lecture commencée",
+                    readingFinished: "Lecture terminée",
+                    testingAllFrenchVoices: "Test de toutes les voix françaises...",
+                    availableVoices: "Voix disponibles:",
+                    voicesDetected: "voix française(s) détectée(s)",
+                    currentSavedVoice: "Voix sauvegardée actuelle:",
+                    selectVoice: "Sélectionner une voix",
+                    testSelectedVoice: "Tester la voix sélectionnée",
+                    testAllVoices: "Tester toutes les voix françaises",
+                    listAllVoices: "Lister toutes les voix",
+                    saveVoice: "Sauvegarder la voix",
+                    clearSavedVoice: "Effacer la voix sauvegardée",
+                    testNumbers: "Tester avec des nombres",
+                    usingVoice: "Utilisation de la voix"
+                }
+            },
+            en: {
+                voiceTest: {
+                    title: "French Voice Test",
+                    browserNotSupported: "Your browser does not support Web Speech API",
+                    noFrenchVoiceDetected: "No French voice detected. On iOS, go to Settings > Accessibility > Spoken Content > Voices to add a French voice.",
+                    iosVoiceInstructions: "On iOS, go to Settings > Accessibility > Spoken Content > Voices to add a French voice.",
+                    voiceListUpdated: "Voice list updated",
+                    noFrenchVoiceAvailable: "No French voice available",
+                    noVoiceFound: "No voices found, please try again later",
+                    speechSynthesisNotSupported: "Your browser does not support speech synthesis",
+                    noFrenchVoiceFoundUsingDefault: "No French voice found, using default voice",
+                    speechError: "Speech error",
+                    readingStarted: "Reading started",
+                    readingFinished: "Reading finished",
+                    testingAllFrenchVoices: "Testing all French voices...",
+                    availableVoices: "Available voices:",
+                    voicesDetected: "French voice(s) detected",
+                    currentSavedVoice: "Current saved voice:",
+                    selectVoice: "Select a voice",
+                    testSelectedVoice: "Test selected voice",
+                    testAllVoices: "Test all French voices",
+                    listAllVoices: "List all voices",
+                    saveVoice: "Save voice",
+                    clearSavedVoice: "Clear saved voice",
+                    testNumbers: "Test with numbers",
+                    usingVoice: "Using voice"
+                }
+            },
+            zh: {
+                voiceTest: {
+                    title: "法语语音测试",
+                    browserNotSupported: "您的浏览器不支持Web Speech API",
+                    noFrenchVoiceDetected: "未检测到法语语音。在iOS上，请前往设置 > 辅助功能 > 朗读内容 > 语音来添加法语语音。",
+                    iosVoiceInstructions: "在iOS上，请前往设置 > 辅助功能 > 朗读内容 > 语音来添加法语语音。",
+                    voiceListUpdated: "语音列表已更新",
+                    noFrenchVoiceAvailable: "没有可用的法语语音",
+                    noVoiceFound: "未找到语音，请稍后重试",
+                    speechSynthesisNotSupported: "您的浏览器不支持语音合成",
+                    noFrenchVoiceFoundUsingDefault: "未找到法语语音，使用默认语音",
+                    speechError: "语音错误",
+                    readingStarted: "开始朗读",
+                    readingFinished: "朗读完成",
+                    testingAllFrenchVoices: "测试所有法语语音...",
+                    availableVoices: "可用语音：",
+                    voicesDetected: "检测到法语语音",
+                    currentSavedVoice: "当前保存的语音：",
+                    selectVoice: "选择语音",
+                    testSelectedVoice: "测试选中的语音",
+                    testAllVoices: "测试所有法语语音",
+                    listAllVoices: "列出所有语音",
+                    saveVoice: "保存语音",
+                    clearSavedVoice: "清除保存的语音",
+                    testNumbers: "用数字测试",
+                    usingVoice: "使用语音"
+                }
+            }
+        };
+
+        let currentLanguage = 'fr';
+        let translations = TRANSLATIONS[currentLanguage];
+        const loading = "Chargement des voix...";
+        let selectedVoice = null;
+        
+        // 更新页面文本
+        function updatePageTexts() {
+            document.getElementById('page-title').textContent = translations.voiceTest.title;
+            document.getElementById('main-title').textContent = translations.voiceTest.title;
+            document.getElementById('saved-voice-label').textContent = translations.voiceTest.currentSavedVoice;
+            document.getElementById('voice-selection-title').textContent = translations.voiceTest.selectVoice;
+            document.getElementById('select-voice-label').textContent = translations.voiceTest.selectVoice + ':';
+            document.getElementById('loading-option').textContent = loading;
+            document.getElementById('testVoiceBtn').textContent = translations.voiceTest.testSelectedVoice;
+            document.getElementById('saveVoiceBtn').textContent = translations.voiceTest.saveVoice;
+            document.getElementById('clearVoiceBtn').textContent = translations.voiceTest.clearSavedVoice;
+            document.getElementById('test-section-title').textContent = translations.voiceTest.testNumbers;
+            document.getElementById('testAllBtn').textContent = translations.voiceTest.testAllVoices;
+            document.getElementById('testNumbersBtn').textContent = translations.voiceTest.testNumbers;
+            document.getElementById('listVoicesBtn').textContent = translations.voiceTest.listAllVoices;
+        }
+        
+        // 语言切换
+        document.getElementById('languageSelect').addEventListener('change', (e) => {
+            currentLanguage = e.target.value;
+            translations = TRANSLATIONS[currentLanguage];
+            updatePageTexts();
+            localStorage.setItem('selectedLanguage', currentLanguage);
+        });
+        
+        // 恢复保存的语言
+        const savedLanguage = localStorage.getItem('selectedLanguage');
+        if (savedLanguage && TRANSLATIONS[savedLanguage]) {
+            currentLanguage = savedLanguage;
+            translations = TRANSLATIONS[currentLanguage];
+            document.getElementById('languageSelect').value = savedLanguage;
+            updatePageTexts();
+        }
+        
+        function showWarning(message) {
+            const warning = document.getElementById('warning');
+            warning.textContent = message;
+            warning.style.display = 'block';
+        }
+        
+        function showInfo(message) {
+            const info = document.getElementById('info');
+            info.textContent = message;
+            info.style.display = 'block';
+        }
+        
+        function clearMessages() {
+            document.getElementById('warning').style.display = 'none';
+            document.getElementById('info').style.display = 'none';
+        }
+        
+        function getAllFrenchVoices() {
+            if (!window.speechSynthesis) return [];
+            
+            const voices = window.speechSynthesis.getVoices();
+            
+            return voices.filter(voice => {
+                const isFrench = /fr/i.test(voice.lang) || /french/i.test(voice.name);
+                return isFrench;
+            });
+        }
+        
+        function getFrenchVoice() {
+            const frenchVoices = getAllFrenchVoices();
+            
+            try {
+                const savedVoiceData = localStorage.getItem('selectedFrenchVoice');
+                if (savedVoiceData) {
+                    const voiceData = JSON.parse(savedVoiceData);
+                    const matchingVoice = frenchVoices.find(voice =>
+                        voice.voiceURI === voiceData.voiceURI ||
+                        (voice.name === voiceData.name && voice.lang === voiceData.lang)
+                    );
+                    if (matchingVoice) {
+                        return matchingVoice;
+                    }
+                }
+            } catch (error) {
+                console.warn('Error loading saved voice:', error);
+            }
+            
+            return frenchVoices.length > 0 ? frenchVoices[0] : null;
+        }
+        
+        function populateVoiceSelector() {
+            const select = document.getElementById('voiceSelect');
+            const frenchVoices = getAllFrenchVoices();
+            
+            select.innerHTML = '';
+            
+            frenchVoices.forEach((voice, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${voice.name} (${voice.lang})`;
+                select.appendChild(option);
+            });
+
+            if (frenchVoices.length === 0) {
+                const option = document.createElement('option');
+                option.textContent = translations.voiceTest.noFrenchVoiceAvailable;
+                option.disabled = true;
+                select.appendChild(option);
+            }
+
+            restoreSavedVoice();
+            updateButtonStates();
+            updateSavedVoiceStatus();
+        }
+        
+        // 将全局函数暴露到window对象
+        window.testFrenchVoice = testFrenchVoice;
+        window.saveSelectedVoice = saveSelectedVoice;
+        window.clearSavedVoice = clearSavedVoice;
+        window.testAllFrenchVoices = testAllFrenchVoices;
+        window.testWithNumbers = testWithNumbers;
+        window.listVoices = listVoices;
+        
+        function restoreSavedVoice() {
+            try {
+                const savedVoiceData = localStorage.getItem('selectedFrenchVoice');
+                if (savedVoiceData) {
+                    const voiceData = JSON.parse(savedVoiceData);
+                    const frenchVoices = getAllFrenchVoices();
+                    const select = document.getElementById('voiceSelect');
+
+                    const matchingVoiceIndex = frenchVoices.findIndex(voice =>
+                        voice.voiceURI === voiceData.voiceURI ||
+                        (voice.name === voiceData.name && voice.lang === voiceData.lang)
+                    );
+
+                    if (matchingVoiceIndex !== -1) {
+                        select.selectedIndex = matchingVoiceIndex;
+                        selectedVoice = frenchVoices[matchingVoiceIndex];
+                    }
+                }
+            } catch (error) {
+                console.warn('Error restoring saved voice:', error);
+            }
+        }
+
+        function updateButtonStates() {
+            const frenchVoices = getAllFrenchVoices();
+            const hasVoices = frenchVoices.length > 0;
+
+            document.getElementById('testVoiceBtn').disabled = !hasVoices;
+            document.getElementById('saveVoiceBtn').disabled = !hasVoices;
+        }
+
+        function updateSavedVoiceStatus() {
+            const statusDiv = document.getElementById('savedVoiceStatus');
+            const infoSpan = document.getElementById('savedVoiceInfo');
+
+            try {
+                const savedVoiceData = localStorage.getItem('selectedFrenchVoice');
+                if (savedVoiceData) {
+                    const voiceData = JSON.parse(savedVoiceData);
+                    infoSpan.textContent = `${voiceData.name} (${voiceData.lang})`;
+                    statusDiv.style.display = 'block';
+                } else {
+                    statusDiv.style.display = 'none';
+                }
+            } catch (error) {
+                statusDiv.style.display = 'none';
+            }
+        }
+
+        function saveSelectedVoice() {
+            const select = document.getElementById('voiceSelect');
+            const frenchVoices = getAllFrenchVoices();
+
+            if (select.selectedIndex >= 0 && select.selectedIndex < frenchVoices.length) {
+                const selectedVoice = frenchVoices[select.selectedIndex];
+                const voiceData = {
+                    name: selectedVoice.name,
+                    lang: selectedVoice.lang,
+                    voiceURI: selectedVoice.voiceURI
+                };
+
+                localStorage.setItem('selectedFrenchVoice', JSON.stringify(voiceData));
+                showInfo(`${translations.voiceTest.saveVoice}: ${selectedVoice.name} (${selectedVoice.lang})`);
+                updateSavedVoiceStatus();
+            }
+        }
+
+        function clearSavedVoice() {
+            localStorage.removeItem('selectedFrenchVoice');
+            showInfo(translations.voiceTest.clearSavedVoice);
+            updateSavedVoiceStatus();
+        }
+
+        function testFrenchVoice() {
+            if (!window.speechSynthesis) {
+                showWarning(translations.voiceTest.speechSynthesisNotSupported);
+                return;
+            }
+
+            clearMessages();
+
+            const utterance = new SpeechSynthesisUtterance('Bonjour, je teste la voix française. Les nombres: vingt-trois, quarante-sept, soixante-dix-huit.');
+            utterance.lang = 'fr-FR';
+
+            const frenchVoice = getFrenchVoice();
+            if (frenchVoice) {
+                utterance.voice = frenchVoice;
+                showInfo(`${translations.voiceTest.usingVoice}: ${frenchVoice.name} (${frenchVoice.lang})`);
+            } else {
+                showWarning(translations.voiceTest.noFrenchVoiceFoundUsingDefault);
+            }
+
+            utterance.onerror = (event) => {
+                showWarning(`${translations.voiceTest.speechError}: ${event.error}`);
+            };
+
+            utterance.onstart = () => {
+                console.log(translations.voiceTest.readingStarted);
+            };
+
+            utterance.onend = () => {
+                console.log(translations.voiceTest.readingFinished);
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function testWithNumbers() {
+            if (!window.speechSynthesis) {
+                showWarning(translations.voiceTest.speechSynthesisNotSupported);
+                return;
+            }
+
+            clearMessages();
+
+            const numbers = ['quinze', 'vingt-trois', 'quarante-sept', 'soixante-dix-huit', 'quatre-vingt-douze'];
+            const text = `${translations.voiceTest.testNumbers}: ${numbers.join(', ')}.`;
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'fr-FR';
+
+            const frenchVoice = getFrenchVoice();
+            if (frenchVoice) {
+                utterance.voice = frenchVoice;
+                showInfo(`${translations.voiceTest.usingVoice}: ${frenchVoice.name} (${frenchVoice.lang})`);
+            } else {
+                showWarning(translations.voiceTest.noFrenchVoiceFoundUsingDefault);
+            }
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function testAllFrenchVoices() {
+            const frenchVoices = getAllFrenchVoices();
+            if (frenchVoices.length === 0) {
+                showWarning(translations.voiceTest.noFrenchVoiceAvailable);
+                return;
+            }
+
+            clearMessages();
+            showInfo(translations.voiceTest.testingAllFrenchVoices);
+
+            let currentIndex = 0;
+
+            function testNextVoice() {
+                if (currentIndex >= frenchVoices.length) {
+                    showInfo(`${translations.voiceTest.testCompleted || 'Test terminé'}`);
+                    return;
+                }
+
+                const voice = frenchVoices[currentIndex];
+                const utterance = new SpeechSynthesisUtterance(`Voix ${currentIndex + 1}: ${voice.name}. Bonjour, vingt-trois.`);
+                utterance.voice = voice;
+                utterance.lang = 'fr-FR';
+
+                utterance.onend = () => {
+                    currentIndex++;
+                    setTimeout(testNextVoice, 1000);
+                };
+
+                utterance.onerror = () => {
+                    currentIndex++;
+                    setTimeout(testNextVoice, 500);
+                };
+
+                window.speechSynthesis.speak(utterance);
+            }
+
+            testNextVoice();
+        }
+
+        function listVoices() {
+            const voiceList = document.getElementById('voiceList');
+            const voices = window.speechSynthesis.getVoices();
+
+            if (voices.length === 0) {
+                voiceList.innerHTML = `<p>${translations.voiceTest.noVoiceFound}</p>`;
+                voiceList.style.display = 'block';
+                return;
+            }
+
+            let html = `<h3>${translations.voiceTest.availableVoices}</h3><ul>`;
+            voices.forEach((voice, index) => {
+                const isFrench = /fr/i.test(voice.lang) || /french/i.test(voice.name);
+                const marker = isFrench ? '🇫🇷 ' : '';
+                html += `<li>${marker}${voice.name} (${voice.lang}) - ${voice.voiceURI}</li>`;
+            });
+            html += '</ul>';
+
+            voiceList.innerHTML = html;
+            voiceList.style.display = 'block';
+        }
+
+        window.addEventListener('load', () => {
+            if (!window.speechSynthesis) {
+                showWarning(translations.voiceTest.browserNotSupported);
+                return;
+            }
+
+            function checkVoices() {
+                const voices = window.speechSynthesis.getVoices();
+                if (voices.length === 0) {
+                    setTimeout(checkVoices, 100);
+                    return;
+                }
+
+                populateVoiceSelector();
+
+                const frenchVoices = getAllFrenchVoices();
+                if (frenchVoices.length === 0) {
+                    showWarning(translations.voiceTest.noFrenchVoiceDetected);
+                } else {
+                    showInfo(`${frenchVoices.length} ${translations.voiceTest.voicesDetected}`);
+                }
+            }
+
+            checkVoices();
+        });
+
+        window.speechSynthesis.onvoiceschanged = () => {
+            console.log(translations.voiceTest.voiceListUpdated);
+            populateVoiceSelector();
+        };
+    </script>
+</body>
+</html>

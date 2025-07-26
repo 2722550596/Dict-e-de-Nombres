@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../hooks/useLanguage';
 import { ExerciseSettings } from '../../types/exercise';
+import { GameDataManager, RecommendationResult } from '../../utils/gameData';
+import { DifficultySelector } from '../DifficultySelector';
+import { ConfirmModal } from '../ConfirmModal';
 
 interface NumberSettingsPanelProps {
   onStart: (settings: ExerciseSettings) => void;
@@ -12,6 +15,30 @@ export const NumberSettingsPanel: React.FC<NumberSettingsPanelProps> = ({ onStar
   const [quantity, setQuantity] = useState(20);
   const [customMin, setCustomMin] = useState(0);
   const [customMax, setCustomMax] = useState(9999);
+  const [recommendation, setRecommendation] = useState<RecommendationResult>({ text: '', recommendedRange: '' });
+  const [showClearStatsModal, setShowClearStatsModal] = useState(false);
+
+  // 加载智能推荐
+  useEffect(() => {
+    const numberStats = GameDataManager.loadNumberStats();
+    const rec = GameDataManager.getRecommendation(numberStats, translations);
+    setRecommendation(rec);
+  }, [translations]);
+
+  // 清空准确率记录
+  const handleClearStats = () => {
+    setShowClearStatsModal(true);
+  };
+
+  // 确认清空统计
+  const handleConfirmClearStats = () => {
+    GameDataManager.clearNumberStats();
+    // 重新加载推荐
+    const numberStats = GameDataManager.loadNumberStats();
+    const rec = GameDataManager.getRecommendation(numberStats, translations);
+    setRecommendation(rec);
+    setShowClearStatsModal(false);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,26 +64,29 @@ export const NumberSettingsPanel: React.FC<NumberSettingsPanelProps> = ({ onStar
 
   return (
     <div className="settings-panel">
+      {recommendation.text && (
+        <div className="recommendation-banner">
+          <div className="recommendation-text">
+            💡 {recommendation.text}
+          </div>
+          <button
+            type="button"
+            className="recommendation-clear-btn"
+            onClick={handleClearStats}
+            title={translations.clearStatsTooltip}
+          >
+            ×
+          </button>
+        </div>
+      )}
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="difficulty">{translations.difficulty}</label>
-          <select 
-            id="difficulty" 
-            className="select" 
-            value={rangeKey} 
-            onChange={(e) => setRangeKey(e.target.value)}
-          >
-            <option value="0-9">{translations.difficulties["0-9"]}</option>
-            <option value="0-20">{translations.difficulties["0-20"]}</option>
-            <option value="0-69">{translations.difficulties["0-69"]}</option>
-            <option value="70-99">{translations.difficulties["70-99"]}</option>
-            <option value="0-99">{translations.difficulties["0-99"]}</option>
-            <option value="100-199">{translations.difficulties["100-199"]}</option>
-            <option value="100-999">{translations.difficulties["100-999"]}</option>
-            <option value="1700-2050">{translations.difficulties["1700-2050"]}</option>
-            <option value="tens">{translations.difficulties.tens}</option>
-            <option value="custom">{translations.difficulties.custom}</option>
-          </select>
+          <DifficultySelector
+            value={rangeKey}
+            onChange={setRangeKey}
+            recommendedRange={recommendation.recommendedRange}
+          />
         </div>
 
         {rangeKey === 'custom' && (
@@ -103,6 +133,14 @@ export const NumberSettingsPanel: React.FC<NumberSettingsPanelProps> = ({ onStar
           {translations.startExercise}
         </button>
       </form>
+
+      <ConfirmModal
+        isOpen={showClearStatsModal}
+        title={translations.clearStatsModal.title}
+        message={translations.clearStatsModal.message}
+        onConfirm={handleConfirmClearStats}
+        onCancel={() => setShowClearStatsModal(false)}
+      />
     </div>
   );
 };

@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">Experience Debug Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .status {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+            white-space: pre-line;
+        }
+        
+        .button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        .button:hover {
+            background-color: #0056b3;
+        }
+        
+        .button.danger {
+            background-color: #dc3545;
+        }
+        
+        .button.danger:hover {
+            background-color: #c82333;
+        }
+        
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 4px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .log .success { color: #28a745; }
+        .log .error { color: #dc3545; }
+        .log .info { color: #007bff; }
+        
+        .language-selector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .language-selector select {
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="language-selector">
+        <select id="languageSelect">
+            <option value="fr">🇫🇷 Français</option>
+            <option value="en" selected>🇺🇸 English</option>
+            <option value="zh">🇨🇳 中文</option>
+        </select>
+    </div>
+
+    <h1 id="main-title">Experience Debug Tool</h1>
+
+    <div class="container">
+        <h2 id="current-status-title">Current Status</h2>
+        <div id="currentStatus" class="status">
+            Loading...
+        </div>
+        <button class="button" id="refreshBtn" onclick="refreshStatus()">Refresh Status</button>
+    </div>
+
+    <div class="container">
+        <h2 id="test-operations-title">Test Operations</h2>
+        <button class="button" id="testSimpleBtn" onclick="testSimpleSession()">Test Simple Session (5 correct)</button>
+        <button class="button" id="testMathBtn" onclick="testMathSession()">Test Math Session (3 correct)</button>
+        <button class="button" id="testMixedBtn" onclick="testMixedSession()">Test Mixed Session (partial correct)</button>
+        <button class="button" id="testEmptyBtn" onclick="testEmptySession()">Test Empty Session</button>
+        <br>
+        <button class="button danger" id="clearUserBtn" onclick="clearUserData()">Clear User Data</button>
+        <button class="button danger" id="clearAllBtn" onclick="clearAllData()">Clear All Data</button>
+    </div>
+
+    <div class="container">
+        <h2 id="operation-log-title">Operation Log</h2>
+        <div id="logContainer" class="log"></div>
+        <button class="button" id="clearLogBtn" onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <script type="module">
+        // 导入翻译系统
+        import { TRANSLATIONS, SUPPORTED_LANGUAGES } from './src/i18n/languages.ts';
+        
+        let currentLanguage = 'en';
+        let translations = TRANSLATIONS[currentLanguage];
+        
+        // 更新页面文本
+        function updatePageTexts() {
+            document.getElementById('page-title').textContent = translations.debugTool.title;
+            document.getElementById('main-title').textContent = translations.debugTool.title;
+            document.getElementById('current-status-title').textContent = translations.debugTool.currentStatus;
+            document.getElementById('refreshBtn').textContent = translations.debugTool.refreshStatus;
+            document.getElementById('test-operations-title').textContent = translations.debugTool.testOperations;
+            document.getElementById('testSimpleBtn').textContent = translations.debugTool.testSimpleSession;
+            document.getElementById('testMathBtn').textContent = translations.debugTool.testMathSession;
+            document.getElementById('testMixedBtn').textContent = translations.debugTool.testMixedSession;
+            document.getElementById('testEmptyBtn').textContent = translations.debugTool.testEmptySession;
+            document.getElementById('clearUserBtn').textContent = translations.debugTool.clearUserData;
+            document.getElementById('clearAllBtn').textContent = translations.debugTool.clearAllData;
+            document.getElementById('operation-log-title').textContent = translations.debugTool.operationLog;
+            document.getElementById('clearLogBtn').textContent = translations.debugTool.clearLog;
+        }
+        
+        // 语言切换
+        document.getElementById('languageSelect').addEventListener('change', (e) => {
+            currentLanguage = e.target.value;
+            translations = TRANSLATIONS[currentLanguage];
+            updatePageTexts();
+            localStorage.setItem('selectedLanguage', currentLanguage);
+        });
+        
+        // 恢复保存的语言
+        const savedLanguage = localStorage.getItem('selectedLanguage');
+        if (savedLanguage && TRANSLATIONS[savedLanguage]) {
+            currentLanguage = savedLanguage;
+            translations = TRANSLATIONS[currentLanguage];
+            document.getElementById('languageSelect').value = savedLanguage;
+            updatePageTexts();
+        }
+
+        // 模拟GameDataManager的核心功能
+        const STORAGE_KEYS = {
+            USER_DATA: 'frenchNumbers_userData',
+            NUMBER_STATS: 'frenchNumbers_numberStats'
+        };
+
+        const DEFAULT_USER_DATA = {
+            level: 1,
+            experience: 0,
+            totalSessions: 0,
+            todaySessions: 0,
+            lastActiveDate: new Date().toDateString(),
+            totalQuestions: 0,
+            totalCorrect: 0,
+            maxStreak: 0
+        };
+
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+            logContainer.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('logContainer').innerHTML = '';
+        }
+
+        function loadUserData() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEYS.USER_DATA);
+                if (!saved) {
+                    log(translations.debugTool.noUserDataFound);
+                    return DEFAULT_USER_DATA;
+                }
+                
+                const data = JSON.parse(saved);
+                const today = new Date().toDateString();
+                
+                if (data.lastActiveDate !== today) {
+                    data.todaySessions = 0;
+                    data.lastActiveDate = today;
+                    log(translations.debugTool.newDayDetected);
+                }
+                
+                return { ...DEFAULT_USER_DATA, ...data };
+            } catch (error) {
+                log(`${translations.debugTool.loadUserDataFailed}: ${error.message}`, 'error');
+                return DEFAULT_USER_DATA;
+            }
+        }
+
+        function saveUserData(userData) {
+            try {
+                localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
+                return true;
+            } catch (error) {
+                log(`${translations.debugTool.loadUserDataFailed}: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        function calculateLevel(experience) {
+            if (experience < 100) return 1;
+            if (experience < 300) return 2;
+            if (experience < 600) return 3;
+            if (experience < 1000) return 4;
+            if (experience < 1500) return 5;
+            if (experience < 2100) return 6;
+            if (experience < 2800) return 7;
+            if (experience < 3600) return 8;
+            if (experience < 4500) return 9;
+            return 10;
+        }
+
+        function calculateExperience(sessionResults) {
+            const totalCount = sessionResults.length;
+            const correctCount = sessionResults.filter(r => r.correct).length;
+            
+            if (totalCount === 0) return 0;
+            
+            let baseExp = correctCount * 10;
+            
+            const accuracy = correctCount / totalCount;
+            if (accuracy >= 0.9) {
+                baseExp *= 1.5;
+            } else if (accuracy >= 0.7) {
+                baseExp *= 1.2;
+            }
+            
+            const mathQuestions = sessionResults.filter(r => r.mode === 'math').length;
+            if (mathQuestions > 0) {
+                baseExp += mathQuestions * 5;
+            }
+            
+            return Math.round(baseExp);
+        }
+
+        // 将全局函数暴露到window对象
+        window.refreshStatus = refreshStatus;
+        window.testSimpleSession = testSimpleSession;
+        window.testMathSession = testMathSession;
+        window.testMixedSession = testMixedSession;
+        window.testEmptySession = testEmptySession;
+        window.clearUserData = clearUserData;
+        window.clearAllData = clearAllData;
+        window.clearLog = clearLog;
+        
+        function updateSessionResults(sessionResults) {
+            const userData = loadUserData();
+
+            const experience = calculateExperience(sessionResults);
+            const totalCount = sessionResults.length;
+            const correctCount = sessionResults.filter(r => r.correct).length;
+
+            const oldLevel = calculateLevel(userData.experience);
+            userData.experience += experience;
+            const newLevel = calculateLevel(userData.experience);
+            userData.level = newLevel;
+            userData.totalSessions += 1;
+            userData.todaySessions += 1;
+            userData.totalQuestions += totalCount;
+            userData.totalCorrect += correctCount;
+            userData.lastActiveDate = new Date().toDateString();
+
+            log(`${translations.debugTool.level}=${newLevel} (${oldLevel}→${newLevel}), ${translations.debugTool.experience}=${userData.experience} (+${experience})`);
+
+            const saved = saveUserData(userData);
+            if (saved) {
+                log(`${translations.debugTool.testCompleted}`, 'success');
+            } else {
+                log(`${translations.debugTool.loadUserDataFailed}`, 'error');
+            }
+
+            return {
+                experience,
+                levelUp: newLevel > oldLevel ? { oldLevel, newLevel } : null
+            };
+        }
+
+        function refreshStatus() {
+            const userData = loadUserData();
+            const statusDiv = document.getElementById('currentStatus');
+
+            statusDiv.innerHTML = `
+                <strong>${translations.debugTool.currentStatus}:</strong><br>
+                ${translations.debugTool.level}: ${userData.level}<br>
+                ${translations.debugTool.experience}: ${userData.experience}<br>
+                ${translations.debugTool.totalSessions}: ${userData.totalSessions}<br>
+                ${translations.debugTool.todaySessions}: ${userData.todaySessions}<br>
+                ${translations.debugTool.totalQuestions}: ${userData.totalQuestions}<br>
+                ${translations.debugTool.totalCorrect}: ${userData.totalCorrect}<br>
+                ${translations.debugTool.maxStreak}: ${userData.maxStreak}<br>
+                ${translations.debugTool.lastActiveDate}: ${userData.lastActiveDate}<br>
+                <br>
+                <strong>${translations.debugTool.localStorageStatus}:</strong><br>
+                ${translations.debugTool.userDataKey}: ${STORAGE_KEYS.USER_DATA}<br>
+                ${translations.debugTool.dataExists}: ${localStorage.getItem(STORAGE_KEYS.USER_DATA) ? translations.debugTool.yes : translations.debugTool.no}<br>
+                ${translations.debugTool.dataSize}: ${localStorage.getItem(STORAGE_KEYS.USER_DATA)?.length || 0} ${translations.debugTool.characters}
+            `;
+
+            log(translations.debugTool.statusRefreshed);
+        }
+
+        function testSimpleSession() {
+            log(translations.debugTool.startTestSimple);
+            const sessionResults = [
+                { number: 15, correct: true, userAnswer: '15', mode: 'number' },
+                { number: 23, correct: true, userAnswer: '23', mode: 'number' },
+                { number: 47, correct: true, userAnswer: '47', mode: 'number' },
+                { number: 89, correct: true, userAnswer: '89', mode: 'number' },
+                { number: 56, correct: true, userAnswer: '56', mode: 'number' }
+            ];
+
+            const result = updateSessionResults(sessionResults);
+            log(`${translations.debugTool.testCompleted}, ${translations.debugTool.experienceGained}: ${result.experience}`, 'success');
+            if (result.levelUp) {
+                log(`${translations.debugTool.congratsLevelUp}${result.levelUp.oldLevel} → ${result.levelUp.newLevel}`, 'success');
+            }
+            refreshStatus();
+        }
+
+        function testMathSession() {
+            log(translations.debugTool.startTestMath);
+            const sessionResults = [
+                { number: 15, correct: true, userAnswer: '20', mode: 'math', operator: '+' },
+                { number: 30, correct: true, userAnswer: '25', mode: 'math', operator: '-' },
+                { number: 12, correct: true, userAnswer: '36', mode: 'math', operator: '×' }
+            ];
+
+            const result = updateSessionResults(sessionResults);
+            log(`${translations.debugTool.testCompleted}, ${translations.debugTool.experienceGained}: ${result.experience}`, 'success');
+            if (result.levelUp) {
+                log(`${translations.debugTool.congratsLevelUp}${result.levelUp.oldLevel} → ${result.levelUp.newLevel}`, 'success');
+            }
+            refreshStatus();
+        }
+
+        function testMixedSession() {
+            log(translations.debugTool.startTestMixed);
+            const sessionResults = [
+                { number: 15, correct: true, userAnswer: '15', mode: 'number' },
+                { number: 23, correct: false, userAnswer: '32', mode: 'number' },
+                { number: 47, correct: true, userAnswer: '47', mode: 'number' },
+                { number: 89, correct: false, userAnswer: '98', mode: 'number' }
+            ];
+
+            const result = updateSessionResults(sessionResults);
+            log(`${translations.debugTool.testCompleted}, ${translations.debugTool.experienceGained}: ${result.experience}`, 'success');
+            refreshStatus();
+        }
+
+        function testEmptySession() {
+            log(translations.debugTool.startTestEmpty);
+            const sessionResults = [
+                { number: 15, correct: false, userAnswer: '', mode: 'number' },
+                { number: 23, correct: false, userAnswer: '  ', mode: 'number' },
+                { number: 47, correct: false, userAnswer: '', mode: 'number' }
+            ];
+
+            const result = updateSessionResults(sessionResults);
+            log(`${translations.debugTool.testCompleted}, ${translations.debugTool.experienceGained}: ${result.experience}`, 'success');
+            refreshStatus();
+        }
+
+        function clearUserData() {
+            if (confirm(translations.debugTool.confirmClearUserData)) {
+                localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+                log(translations.debugTool.userDataCleared, 'success');
+                refreshStatus();
+            }
+        }
+
+        function clearAllData() {
+            if (confirm(translations.debugTool.confirmClearAllData)) {
+                localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+                localStorage.removeItem(STORAGE_KEYS.NUMBER_STATS);
+                log(translations.debugTool.allDataCleared, 'success');
+                refreshStatus();
+            }
+        }
+
+        // 页面加载时初始化
+        window.onload = function() {
+            log(translations.debugTool.debugToolLoaded);
+            refreshStatus();
+        };
+    </script>
+</body>
+</html>

@@ -83,12 +83,12 @@ export const useGameEffects = ({ userAnswers, correctAnswers, isSubmitted }: Use
     playSound(type);
   }, []);
 
-  // 监听提交状态变化
-  useEffect(() => {
-    if (isSubmitted && checkAllCorrect()) {
-      triggerCelebration();
-    }
-  }, [isSubmitted, checkAllCorrect, triggerCelebration]);
+  // 监听提交状态变化 - 礼炮功能已移至RewardModal
+  // useEffect(() => {
+  //   if (isSubmitted && checkAllCorrect()) {
+  //     triggerCelebration();
+  //   }
+  // }, [isSubmitted, checkAllCorrect, triggerCelebration]);
 
   // 初始化音频上下文
   useEffect(() => {

@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏系统测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .level-progress {
+            background: #e9ecef;
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .level-fill {
+            background: linear-gradient(90deg, #28a745, #20c997);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎮 游戏化系统测试</h1>
+    
+    <div class="test-section">
+        <h2>📊 经验值计算测试</h2>
+        <button onclick="testExperienceCalculation()">测试经验值计算</button>
+        <div id="exp-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🏆 等级系统测试</h2>
+        <button onclick="testLevelSystem()">测试等级系统</button>
+        <div id="level-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔥 连击奖励测试</h2>
+        <button onclick="testStreakBonus()">测试连击奖励</button>
+        <div id="streak-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🎯 智能推荐测试</h2>
+        <button onclick="testRecommendation()">测试智能推荐</button>
+        <div id="recommendation-results"></div>
+    </div>
+
+    <script>
+        // 模拟GameDataManager的核心方法
+        class TestGameDataManager {
+            static calculateExperience(sessionResults) {
+                const validResults = sessionResults.filter(r => r.userAnswer.trim() !== '');
+                if (validResults.length === 0) return 0;
+
+                const correctCount = validResults.filter(r => r.correct).length;
+                const totalCount = validResults.length;
+                let totalExp = 0;
+
+                validResults.forEach(result => {
+                    let baseExp = 5;
+                    if (result.mode === 'math' && result.operator) {
+                        switch (result.operator) {
+                            case '+': baseExp *= 2.5; break;
+                            case '-': baseExp *= 3.5; break;
+                            case '×':
+                            case '÷': baseExp *= 4; break; // 新的4倍倍数
+                        }
+                    }
+                    if (result.correct) {
+                        totalExp += baseExp;
+                    }
+                });
+
+                const accuracy = correctCount / totalCount;
+                const accuracyBonus = Math.floor(accuracy * totalCount * 10);
+                const streak = this.calculateStreak(sessionResults.map(r => r.correct));
+                const streakBonus = this.calculateStreakBonus(streak);
+
+                return Math.round(totalExp + accuracyBonus + streakBonus);
+            }
+
+            static calculateStreakBonus(streak) {
+                if (streak < 3) return 0;
+                let bonus = 0;
+                
+                if (streak >= 3) {
+                    const baseStreaks = Math.min(streak, 5) - 2;
+                    bonus += baseStreaks * 2;
+                }
+                if (streak >= 6) {
+                    const midStreaks = Math.min(streak, 10) - 5;
+                    bonus += midStreaks * 3;
+                }
+                if (streak >= 11) {
+                    const highStreaks = Math.min(streak, 20) - 10;
+                    bonus += highStreaks * 5;
+                }
+                if (streak >= 21) {
+                    const maxStreaks = streak - 20;
+                    bonus += maxStreaks * 8;
+                }
+                
+                return bonus;
+            }
+
+            static calculateStreak(results) {
+                let maxStreak = 0;
+                let currentStreak = 0;
+                
+                for (const isCorrect of results) {
+                    if (isCorrect) {
+                        currentStreak++;
+                        maxStreak = Math.max(maxStreak, currentStreak);
+                    } else {
+                        currentStreak = 0;
+                    }
+                }
+                
+                return maxStreak;
+            }
+
+            static calculateLevel(experience) {
+                const safeExperience = Math.max(0, experience);
+
+                let currentExp = 0;
+                let level = 1;
+                let expForNextLevel = 150;
+
+                while (currentExp + expForNextLevel <= safeExperience) {
+                    currentExp += expForNextLevel;
+                    level++;
+                    expForNextLevel = 150 + (level - 2) * 50;
+
+                    if (level > 100) break;
+                }
+
+                return level;
+            }
+
+            static getExperienceProgress(experience) {
+                const safeExperience = Math.max(0, experience);
+                const level = this.calculateLevel(safeExperience);
+
+                const currentLevelRequiredExp = this.getExperienceRequiredForLevel(level);
+                const nextLevelRequiredExp = this.getExperienceRequiredForLevel(level + 1);
+
+                const currentLevelExp = Math.max(0, safeExperience - currentLevelRequiredExp);
+                const nextLevelExp = nextLevelRequiredExp - currentLevelRequiredExp;
+
+                let progress = 0;
+                if (nextLevelExp > 0) {
+                    progress = currentLevelExp / nextLevelExp;
+                } else {
+                    progress = 1;
+                }
+
+                return {
+                    level,
+                    currentLevelExp: Math.max(0, currentLevelExp),
+                    nextLevelExp: Math.max(0, nextLevelExp),
+                    progress: Math.min(1, Math.max(0, progress))
+                };
+            }
+
+            static getExperienceRequiredForLevel(level) {
+                const safeLevel = Math.max(1, level);
+                if (safeLevel <= 1) return 0;
+
+                let totalExp = 0;
+                for (let i = 2; i <= safeLevel; i++) {
+                    totalExp += 150 + (i - 2) * 50;
+                    if (i > 100) break;
+                }
+
+                return totalExp;
+            }
+        }
+
+        function testExperienceCalculation() {
+            const results = document.getElementById('exp-results');
+            results.innerHTML = '';
+
+            // 测试案例
+            const testCases = [
+                {
+                    name: '数字听写 - 全对',
+                    data: [
+                        {number: 1, correct: true, userAnswer: '1', mode: 'number'},
+                        {number: 2, correct: true, userAnswer: '2', mode: 'number'},
+                        {number: 3, correct: true, userAnswer: '3', mode: 'number'}
+                    ]
+                },
+                {
+                    name: '数学运算 - 乘法全对',
+                    data: [
+                        {number: 6, correct: true, userAnswer: '6', mode: 'math', operator: '×'},
+                        {number: 8, correct: true, userAnswer: '8', mode: 'math', operator: '×'}
+                    ]
+                },
+                {
+                    name: '数学运算 - 除法全对',
+                    data: [
+                        {number: 4, correct: true, userAnswer: '4', mode: 'math', operator: '÷'},
+                        {number: 6, correct: true, userAnswer: '6', mode: 'math', operator: '÷'}
+                    ]
+                }
+            ];
+
+            testCases.forEach(testCase => {
+                const exp = TestGameDataManager.calculateExperience(testCase.data);
+                results.innerHTML += `
+                    <div class="test-result success">
+                        <strong>${testCase.name}</strong><br>
+                        获得经验值: ${exp}
+                    </div>
+                `;
+            });
+        }
+
+        function testLevelSystem() {
+            const results = document.getElementById('level-results');
+            results.innerHTML = '';
+
+            // 包含边界情况的测试
+            const testExperiences = [-10, 0, 149, 150, 349, 350, 599, 600, 899, 900, 1250, 1650, 2100];
+
+            testExperiences.forEach(exp => {
+                const level = TestGameDataManager.calculateLevel(exp);
+                const progress = TestGameDataManager.getExperienceProgress(exp);
+
+                const resultClass = progress.currentLevelExp < 0 ? 'test-result error' : 'test-result info';
+
+                results.innerHTML += `
+                    <div class="${resultClass}">
+                        <strong>经验值: ${exp}</strong><br>
+                        等级: ${level}<br>
+                        当前等级经验: ${progress.currentLevelExp}/${progress.nextLevelExp}<br>
+                        进度: ${Math.round(progress.progress * 100)}%
+                        <div class="level-progress">
+                            <div class="level-fill" style="width: ${progress.progress * 100}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function testStreakBonus() {
+            const results = document.getElementById('streak-results');
+            results.innerHTML = '';
+
+            const testStreaks = [1, 3, 5, 10, 15, 25, 50];
+            
+            testStreaks.forEach(streak => {
+                const bonus = TestGameDataManager.calculateStreakBonus(streak);
+                results.innerHTML += `
+                    <div class="test-result ${bonus > 0 ? 'success' : 'info'}">
+                        <strong>${streak}连击</strong> → 奖励经验: ${bonus}
+                    </div>
+                `;
+            });
+        }
+
+        function testRecommendation() {
+            const results = document.getElementById('recommendation-results');
+            results.innerHTML = `
+                <div class="test-result info">
+                    <strong>智能推荐系统已更新</strong><br>
+                    新增范围包括：<br>
+                    • 基础: 0-9, 0-16, 0-20, 0-30<br>
+                    • 中级: 0-50, 20-69, 50-99, 70-99, 0-99<br>
+                    • 困难: 100-199, 100-999, 200-999, 1000-1999, 1000-9999<br>
+                    • 特殊: 年份(1700-2050)
+                </div>
+            `;
+        }
+
+        // 页面加载时运行所有测试
+        window.onload = function() {
+            testExperienceCalculation();
+            testLevelSystem();
+            testStreakBonus();
+            testRecommendation();
+        };
+    </script>
+</body>
+</html>
