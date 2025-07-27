@@ -27,10 +27,15 @@ export default defineConfig(({ mode, command }) => {
       rollupOptions: {
         input: {
           main: path.resolve(__dirname, 'index.html'),
-          // 调试文件仅在开发环境包含
-          ...(command === 'serve' || process.env.NODE_ENV !== 'production' ? {
-            voiceTest: path.resolve(__dirname, 'debug/voice-test.html')
-          } : {})
+          // 包含调试文件到生产构建中
+          voiceTest: path.resolve(__dirname, 'debug/voice-test.html'),
+          voiceTestI18n: path.resolve(__dirname, 'debug/voice-test-i18n.html'),
+          debugExperience: path.resolve(__dirname, 'debug/debug-experience.html'),
+          debugExperienceI18n: path.resolve(__dirname, 'debug/debug-experience-i18n.html'),
+          testVoiceFix: path.resolve(__dirname, 'debug/test-voice-fix.html'),
+          dynamicTitleTest: path.resolve(__dirname, 'debug/dynamic-title-test.html'),
+          multilingualTest: path.resolve(__dirname, 'debug/multilingual-test.html'),
+          testLanguageSync: path.resolve(__dirname, 'debug/test-language-sync.html')
         }
       }
     },
