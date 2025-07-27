@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">HUD测试页面</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .game-hud {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            user-select: none;
+            z-index: 1000;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-hud.collapsed {
+            width: auto;
+        }
+
+        .game-hud.expanded {
+            width: 280px;
+        }
+
+        .game-hud:hover {
+            background: rgba(0, 0, 0, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .level-tag {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .level-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+        }
+
+        .level-text {
+            font-weight: 700;
+            font-size: 16px;
+            color: #fbbf24;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .details {
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .game-hud.collapsed .details {
+            max-height: 0;
+            opacity: 0;
+            margin-top: 0;
+        }
+
+        .game-hud.expanded .details {
+            max-height: 200px;
+            opacity: 1;
+            margin-top: 8px;
+        }
+
+        .exp-section {
+            margin-bottom: 12px;
+        }
+
+        .exp-bar-container {
+            position: relative;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            height: 20px;
+            overflow: hidden;
+            margin-bottom: 4px;
+        }
+
+        .exp-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            border-radius: 8px;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .exp-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .exp-text {
+            font-size: 12px;
+            color: #e5e7eb;
+            font-weight: 500;
+        }
+
+        .stats-section {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #f3f4f6;
+        }
+
+        .stat-item svg {
+            flex-shrink: 0;
+        }
+
+        .content {
+            padding: 100px 40px 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .content h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .content p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            text-align: center;
+            opacity: 0.9;
+        }
+
+        .language-selector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .language-selector select {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+        }
+
+        .language-selector select option {
+            background: #1f2937;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .game-hud.expanded {
+                width: 240px;
+            }
+            
+            .content {
+                padding: 80px 20px 20px;
+            }
+            
+            .content h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="language-selector">
+        <select id="languageSelect">
+            <option value="fr">🇫🇷 Français</option>
+            <option value="en">🇺🇸 English</option>
+            <option value="zh">🇨🇳 中文</option>
+        </select>
+    </div>
+
+    <div class="game-hud collapsed" id="gameHud">
+        <div class="level-tag">
+            <div class="level-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#fbbf24" stroke="#f59e0b" stroke-width="1">
+                    <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
+                </svg>
+            </div>
+            <span class="level-text">5</span>
+        </div>
+
+        <div class="details">
+            <div class="exp-section">
+                <div class="exp-bar-container">
+                    <div class="exp-bar-fill" style="width: 65%"></div>
+                    <span class="exp-text">650/1000 EXP</span>
+                </div>
+            </div>
+
+            <div class="stats-section">
+                <div class="stat-item">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="#60a5fa" stroke="#3b82f6" stroke-width="1">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    <span>3</span>
+                </div>
+
+                <div class="stat-item">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="#f97316" stroke="#ea580c" stroke-width="1">
+                        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+                    </svg>
+                    <span>12</span>
+                </div>
+
+                <div class="stat-item">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="#22c55e" stroke="#16a34a" stroke-width="1">
+                        <circle cx="12" cy="12" r="10"/>
+                        <circle cx="12" cy="12" r="6"/>
+                        <circle cx="12" cy="12" r="2"/>
+                    </svg>
+                    <span>85%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content">
+        <h1 id="main-title">HUD测试页面</h1>
+        <p id="description1">点击左上角的HUD小部件来测试展开/收起功能。</p>
+        <p id="description2">在桌面端，您也可以悬停来预览详细信息。</p>
+    </div>
+
+    <script type="module">
+        // 导入翻译系统
+        import { TRANSLATIONS, SUPPORTED_LANGUAGES } from './src/i18n/languages.ts';
+        
+        let currentLanguage = 'zh';
+        let translations = TRANSLATIONS[currentLanguage];
+        
+        // 添加测试页面的翻译
+        const testPageTranslations = {
+            fr: {
+                title: "Page de Test HUD",
+                description1: "Cliquez sur le widget HUD en haut à gauche pour tester la fonction d'expansion/réduction.",
+                description2: "Sur desktop, vous pouvez également survoler pour prévisualiser les détails."
+            },
+            en: {
+                title: "HUD Test Page",
+                description1: "Click the HUD widget in the top left to test the expand/collapse function.",
+                description2: "On desktop, you can also hover to preview details."
+            },
+            zh: {
+                title: "HUD测试页面",
+                description1: "点击左上角的HUD小部件来测试展开/收起功能。",
+                description2: "在桌面端，您也可以悬停来预览详细信息。"
+            }
+        };
+        
+        // 更新页面文本
+        function updatePageTexts() {
+            const testTranslations = testPageTranslations[currentLanguage];
+            document.getElementById('page-title').textContent = testTranslations.title;
+            document.getElementById('main-title').textContent = testTranslations.title;
+            document.getElementById('description1').textContent = testTranslations.description1;
+            document.getElementById('description2').textContent = testTranslations.description2;
+        }
+        
+        // 语言切换
+        document.getElementById('languageSelect').addEventListener('change', (e) => {
+            currentLanguage = e.target.value;
+            translations = TRANSLATIONS[currentLanguage];
+            updatePageTexts();
+            localStorage.setItem('selectedLanguage', currentLanguage);
+        });
+        
+        // 恢复保存的语言
+        const savedLanguage = localStorage.getItem('selectedLanguage');
+        if (savedLanguage && TRANSLATIONS[savedLanguage]) {
+            currentLanguage = savedLanguage;
+            translations = TRANSLATIONS[currentLanguage];
+            document.getElementById('languageSelect').value = savedLanguage;
+            updatePageTexts();
+        }
+
+        // HUD交互功能
+        document.getElementById('gameHud').addEventListener('click', function() {
+            this.classList.toggle('collapsed');
+            this.classList.toggle('expanded');
+        });
+    </script>
+</body>
+</html>

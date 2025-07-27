@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG图标替换测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        .comparison {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+        }
+        .before, .after {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+        }
+        .before {
+            background: #fff3cd;
+            border-radius: 4px;
+        }
+        .after {
+            background: #d4edda;
+            border-radius: 4px;
+        }
+        .icon-demo {
+            font-size: 24px;
+            margin: 10px 0;
+        }
+        .flag-demo {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 5px;
+        }
+        .arrow {
+            font-size: 20px;
+            color: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 SVG图标替换验证测试</h1>
+    <p>本页面展示了项目中emoji到SVG图标的替换效果对比。</p>
+
+    <div class="test-section success">
+        <h2>✅ 已完成的替换</h2>
+        
+        <div class="comparison">
+            <div class="before">
+                <h4>替换前 (Emoji)</h4>
+                <div class="icon-demo">🇫🇷 Français</div>
+                <div class="icon-demo">🇺🇸 English</div>
+                <div class="icon-demo">🇨🇳 中文</div>
+                <p><small>在不同系统上显示可能不一致</small></p>
+            </div>
+            <div class="arrow">→</div>
+            <div class="after">
+                <h4>替换后 (SVG)</h4>
+                <div class="flag-demo">
+                    <svg width="20" height="15" viewBox="0 0 24 18">
+                        <rect width="8" height="18" fill="#002654" />
+                        <rect x="8" width="8" height="18" fill="#FFFFFF" />
+                        <rect x="16" width="8" height="18" fill="#CE1126" />
+                    </svg>
+                    Français
+                </div>
+                <div class="flag-demo">
+                    <svg width="20" height="15" viewBox="0 0 24 18">
+                        <rect width="24" height="18" fill="#B22234" />
+                        <rect y="1" width="24" height="1" fill="#FFFFFF" />
+                        <rect y="3" width="24" height="1" fill="#FFFFFF" />
+                        <rect width="10" height="9" fill="#3C3B6E" />
+                        <circle cx="2" cy="2" r="0.5" fill="#FFFFFF" />
+                        <circle cx="4" cy="2" r="0.5" fill="#FFFFFF" />
+                        <circle cx="6" cy="2" r="0.5" fill="#FFFFFF" />
+                    </svg>
+                    English
+                </div>
+                <div class="flag-demo">
+                    <svg width="20" height="15" viewBox="0 0 24 18">
+                        <rect width="24" height="18" fill="#DE2910" />
+                        <polygon points="4,3 4.8,5.4 7.2,5.4 5.4,6.8 6.2,9.2 4,7.8 1.8,9.2 2.6,6.8 0.8,5.4 3.2,5.4" fill="#FFDE00" />
+                    </svg>
+                    中文
+                </div>
+                <p><small>所有系统上显示一致</small></p>
+            </div>
+        </div>
+
+        <div class="comparison">
+            <div class="before">
+                <h4>替换前 (Emoji)</h4>
+                <div class="icon-demo">🎉 恭喜！</div>
+                <p><small>庆祝动画中的emoji</small></p>
+            </div>
+            <div class="arrow">→</div>
+            <div class="after">
+                <h4>替换后 (SVG)</h4>
+                <div class="icon-demo">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5.8 11.3 2 22l10.7-3.79"/>
+                        <path d="M4 3h7a2 2 0 0 1 2 2v6.5"/>
+                        <circle cx="19" cy="19" r="2"/>
+                    </svg>
+                    恭喜！
+                </div>
+                <p><small>Lucide PartyPopper图标</small></p>
+            </div>
+        </div>
+
+        <div class="comparison">
+            <div class="before">
+                <h4>替换前 (Emoji)</h4>
+                <div class="icon-demo">⚠️ 警告信息</div>
+                <p><small>音频控制警告</small></p>
+            </div>
+            <div class="arrow">→</div>
+            <div class="after">
+                <h4>替换后 (SVG)</h4>
+                <div class="icon-demo">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                        <path d="M12 9v4"/>
+                        <path d="m12 17 .01 0"/>
+                    </svg>
+                    警告信息
+                </div>
+                <p><small>Lucide AlertTriangle图标</small></p>
+            </div>
+        </div>
+
+        <div class="comparison">
+            <div class="before">
+                <h4>替换前 (Emoji)</h4>
+                <div class="icon-demo">⚡ 连击奖励</div>
+                <p><small>奖励模态框中的闪电</small></p>
+            </div>
+            <div class="arrow">→</div>
+            <div class="after">
+                <h4>替换后 (SVG)</h4>
+                <div class="icon-demo">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="13,2 3,14 12,14 11,22 21,10 12,10 13,2"/>
+                    </svg>
+                    连击奖励
+                </div>
+                <p><small>Lucide Zap图标</small></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section info">
+        <h2>📋 替换总结</h2>
+        <ul>
+            <li><strong>国旗图标</strong>: 自定义SVG组件 (FrenchFlag, AmericanFlag, ChineseFlag)</li>
+            <li><strong>庆祝图标</strong>: Lucide PartyPopper</li>
+            <li><strong>警告图标</strong>: Lucide AlertTriangle</li>
+            <li><strong>闪电图标</strong>: Lucide Zap</li>
+        </ul>
+        
+        <h3>优势：</h3>
+        <ul>
+            <li>✅ 跨平台一致性</li>
+            <li>✅ 更好的可访问性</li>
+            <li>✅ 可自定义样式</li>
+            <li>✅ 更小的文件大小</li>
+            <li>✅ 专业外观</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 测试步骤</h2>
+        <ol>
+            <li>启动开发服务器: <code>npm run dev</code></li>
+            <li>访问主应用页面</li>
+            <li>检查语言选择器是否显示SVG国旗图标</li>
+            <li>完成一次练习，查看奖励模态框中的SVG图标</li>
+            <li>检查音频控制中的警告图标</li>
+        </ol>
+    </div>
+
+    <div class="test-section info">
+        <h2>📝 开发规范</h2>
+        <p>根据项目的新规范，<strong>禁止在用户界面中使用emoji</strong>，应该使用SVG图标：</p>
+        <ul>
+            <li>优先使用 <a href="https://lucide.dev/" target="_blank">Lucide React</a> 图标库</li>
+            <li>对于特殊需求（如国旗），创建自定义SVG组件</li>
+            <li>确保所有图标都有适当的 <code>aria-label</code> 属性</li>
+            <li>保持图标大小和样式的一致性</li>
+        </ul>
+    </div>
+</body>
+</html>

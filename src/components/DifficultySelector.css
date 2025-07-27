@@ -1,0 +1,312 @@
+/* 难度选择器样式 */
+.difficulty-selector {
+  position: relative;
+  width: 100%;
+}
+
+.difficulty-selector-trigger {
+  width: 100%;
+  padding: 12px 16px;
+  background: linear-gradient(145deg, #ffffff, #f8fafc);
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1e293b;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.difficulty-selector-trigger:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  transform: translateY(-1px);
+}
+
+.difficulty-selector-trigger.open {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.selected-text {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdown-arrow {
+  margin-left: 8px;
+  transition: transform 0.3s ease;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.dropdown-arrow.up {
+  transform: rotate(180deg);
+}
+
+/* 下拉框 */
+.difficulty-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  margin-top: 4px;
+  max-height: 400px;
+  overflow: hidden;
+  animation: dropdownSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes dropdownSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 搜索框 */
+.search-container {
+  padding: 12px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #f8fafc;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  transition: border-color 0.2s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.search-input::placeholder {
+  color: #94a3b8;
+}
+
+/* 选项容器 */
+.options-container {
+  max-height: 320px;
+  overflow-y: auto;
+  /* 隐藏滚动条但保持滚动功能 */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.options-container::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* 类别 */
+.option-category {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.option-category:last-child {
+  border-bottom: none;
+}
+
+.category-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px 8px;
+  background: #f8fafc;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.category-icon {
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+.category-name {
+  flex: 1;
+}
+
+/* 选项 */
+.category-options {
+  padding: 4px 0;
+}
+
+.option-item {
+  width: 100%;
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #374151;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.option-item:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.option-item.selected {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  font-weight: 600;
+}
+
+.option-item.selected:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.option-item.recommended {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: white;
+  font-weight: 600;
+  position: relative;
+}
+
+.option-item.recommended:hover {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.option-item.recommended::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #fbbf24;
+  border-radius: 0 4px 4px 0;
+}
+
+.option-label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recommend-star {
+  margin-left: 8px;
+  font-size: 16px;
+  animation: starTwinkle 2s ease-in-out infinite;
+}
+
+@keyframes starTwinkle {
+  0%, 100% { 
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% { 
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .difficulty-dropdown {
+    max-height: 300px;
+  }
+  
+  .options-container {
+    max-height: 220px;
+  }
+  
+  .difficulty-selector-trigger {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+  
+  .option-item {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+  
+  .category-header {
+    padding: 10px 14px 6px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .difficulty-dropdown {
+    max-height: 250px;
+  }
+  
+  .options-container {
+    max-height: 170px;
+  }
+  
+  .search-container {
+    padding: 10px;
+  }
+  
+  .search-input {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+}
+
+/* 高对比度模式支持 */
+@media (prefers-contrast: high) {
+  .difficulty-selector-trigger {
+    border-width: 3px;
+  }
+  
+  .option-item.selected {
+    background: #000;
+    color: #fff;
+  }
+  
+  .option-item.recommended {
+    background: #ff6600;
+    color: #fff;
+  }
+}
+
+/* 减少动画模式支持 */
+@media (prefers-reduced-motion: reduce) {
+  .difficulty-selector-trigger,
+  .dropdown-arrow,
+  .option-item,
+  .recommend-star {
+    transition: none;
+    animation: none;
+  }
+  
+  .difficulty-dropdown {
+    animation: none;
+  }
+}

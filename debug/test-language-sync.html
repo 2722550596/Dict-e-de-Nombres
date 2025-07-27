@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Language Sync</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            background-color: #e9ecef;
+        }
+        select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-section">
+        <h1>Language Synchronization Test</h1>
+        <p>This page tests if the voice-test.html page correctly follows the main page language settings.</p>
+        
+        <div>
+            <label>Simulate Main Page Language:</label>
+            <select id="mainLanguageSelect">
+                <option value="fr">🇫🇷 Français</option>
+                <option value="en">🇺🇸 English</option>
+                <option value="zh">🇨🇳 中文</option>
+            </select>
+            <button class="button" onclick="setMainLanguage()">Set Main Language</button>
+        </div>
+        
+        <div class="status" id="status">
+            Current main page language: <span id="currentLang">fr</span>
+        </div>
+        
+        <div>
+            <button class="button" onclick="openVoiceTestPage()">Open Voice Test Page</button>
+            <button class="button" onclick="checkCurrentLanguage()">Check Current Language</button>
+        </div>
+        
+        <div id="instructions">
+            <h3>Test Instructions:</h3>
+            <ol>
+                <li>Select a language from the dropdown above</li>
+                <li>Click "Set Main Language" to simulate main page language change</li>
+                <li>Click "Open Voice Test Page" to open the voice test page</li>
+                <li>Verify that the voice test page interface language matches the selected language</li>
+                <li>Try changing the language here and see if the voice test page updates automatically</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        function setMainLanguage() {
+            const select = document.getElementById('mainLanguageSelect');
+            const selectedLang = select.value;
+            
+            // Simulate main page setting the language
+            localStorage.setItem('selectedLanguage', selectedLang);
+            
+            // Update status
+            document.getElementById('currentLang').textContent = selectedLang;
+            
+            // Trigger storage event for other windows/tabs
+            window.dispatchEvent(new StorageEvent('storage', {
+                key: 'selectedLanguage',
+                newValue: selectedLang,
+                oldValue: localStorage.getItem('selectedLanguage')
+            }));
+            
+            console.log('Main page language set to:', selectedLang);
+        }
+        
+        function openVoiceTestPage() {
+            window.open('/debug/voice-test.html', '_blank');
+        }
+        
+        function checkCurrentLanguage() {
+            const currentLang = localStorage.getItem('selectedLanguage') || 'fr';
+            alert(`Current main page language: ${currentLang}`);
+        }
+        
+        // Initialize
+        window.addEventListener('load', () => {
+            const currentLang = localStorage.getItem('selectedLanguage') || 'fr';
+            document.getElementById('mainLanguageSelect').value = currentLang;
+            document.getElementById('currentLang').textContent = currentLang;
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+/**
+ * 静态标题样式
+ * 用于练习页面的简单标题显示
+ */
+
+.static-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #2c3e50;
+  margin: 1rem 0;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .static-title {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .static-title {
+    font-size: 1.5rem;
+  }
+}
+
+/* 深色模式支持 */
+@media (prefers-color-scheme: dark) {
+  .static-title {
+    color: #ecf0f1;
+  }
+}

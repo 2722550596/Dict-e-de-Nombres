@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">Test de Voix Française</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            display: none;
+        }
+        
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            display: none;
+        }
+        
+        .button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        .button:hover {
+            background-color: #0056b3;
+        }
+        
+        .button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        select {
+            width: 100%;
+            padding: 8px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .voice-info {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            display: none;
+        }
+        
+        .voice-list {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            display: none;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .voice-list ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .voice-list li {
+            margin: 5px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .language-selector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .language-selector select {
+            width: auto;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="language-selector">
+        <select id="languageSelect">
+            <option value="fr">🇫🇷 Français</option>
+            <option value="en">🇺🇸 English</option>
+            <option value="zh">🇨🇳 中文</option>
+        </select>
+    </div>
+
+    <div class="container">
+        <h1 id="main-title">Test de Voix Française</h1>
+        
+        <div id="warning" class="warning"></div>
+        <div id="info" class="info"></div>
+        
+        <div class="voice-info" id="savedVoiceStatus">
+            <strong id="saved-voice-label">Voix sauvegardée actuelle:</strong>
+            <span id="savedVoiceInfo"></span>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2 id="voice-selection-title">Sélection de Voix</h2>
+        <label for="voiceSelect" id="select-voice-label">Sélectionner une voix:</label>
+        <select id="voiceSelect">
+            <option id="loading-option">Chargement des voix...</option>
+        </select>
+        
+        <div>
+            <button class="button" id="testVoiceBtn" onclick="testFrenchVoice()" disabled>Tester la voix sélectionnée</button>
+            <button class="button" id="saveVoiceBtn" onclick="saveSelectedVoice()" disabled>Sauvegarder la voix</button>
+            <button class="button" id="clearVoiceBtn" onclick="clearSavedVoice()">Effacer la voix sauvegardée</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2 id="test-section-title">Tests</h2>
+        <button class="button" id="testAllBtn" onclick="testAllFrenchVoices()">Tester toutes les voix françaises</button>
+        <button class="button" id="testNumbersBtn" onclick="testWithNumbers()">Tester avec des nombres</button>
+        <button class="button" id="listVoicesBtn" onclick="listVoices()">Lister toutes les voix</button>
+
+        <div id="voiceList" class="voice-list"></div>
+    </div>
+
+    <!-- 新增：混合发音系统测试区域 -->
+    <div class="container">
+        <h2 id="enhanced-test-title">🚀 Tests du Système de Prononciation Amélioré</h2>
+
+        <div class="enhanced-controls">
+            <div style="margin-bottom: 15px;">
+                <label for="pronunciationMethod" id="method-label">Méthode de prononciation:</label>
+                <select id="pronunciationMethod" onchange="updatePronunciationMethod()">
+                    <option value="auto">Automatique (Google → API → TTS)</option>
+                    <option value="google">Google TTS (Haute qualité)</option>
+                    <option value="api">API Youdao (Backup)</option>
+                    <option value="tts">Synthèse vocale (Système)</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="testText" id="text-label">Texte à tester:</label>
+                <input type="text" id="testText" value="vingt-trois" style="width: 200px; padding: 8px; margin: 0 10px;">
+                <button class="button" onclick="testEnhancedPronunciation()">🔊 Tester</button>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <button class="button" onclick="testNumberSequence()">🔢 Tester séquence de nombres</button>
+                <button class="button" onclick="testMathOperations()">➕ Tester opérations mathématiques</button>
+                <button class="button" onclick="showCacheStats()">📊 Statistiques du cache</button>
+            </div>
+        </div>
+
+        <div id="enhancedInfo" class="info" style="display: none;"></div>
+        <div id="enhancedWarning" class="warning" style="display: none;"></div>
+
+        <!-- API使用说明 -->
+        <div id="apiNotice" style="background: #e3f2fd; padding: 15px; border-radius: 4px; margin: 10px 0; border-left: 4px solid #2196f3;">
+            <h4 style="margin: 0 0 10px 0; color: #1976d2;">📡 API使用说明</h4>
+            <p style="margin: 0 0 10px 0; font-size: 14px;">
+                <strong>如果API请求失败</strong>，这是由于CORS跨域限制导致的。解决方案：
+            </p>
+            <ul style="margin: 0; padding-left: 20px; font-size: 13px;">
+                <li><strong>推荐</strong>: 使用HTTP服务器访问页面 (如 <code>python -m http.server 8000</code>)</li>
+                <li><strong>临时</strong>: 系统会自动尝试多个代理服务</li>
+                <li><strong>回退</strong>: API失败时会自动切换到TTS模式</li>
+            </ul>
+            <p style="margin: 10px 0 0 0; font-size: 12px; color: #666;">
+                💡 在生产环境中，API通过HTTPS服务器访问时工作正常。
+            </p>
+        </div>
+
+        <!-- 状态显示区域 -->
+        <div id="pronunciationStatus" style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin: 10px 0; display: none;">
+            <h4>📈 状态信息</h4>
+            <div id="statusContent"></div>
+        </div>
+
+        <!-- 缓存统计区域 -->
+        <div id="cacheStatsDisplay" style="background: #e7f3ff; padding: 15px; border-radius: 4px; margin: 10px 0; display: none;">
+            <h4>💾 缓存统计</h4>
+            <div id="cacheStatsContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // 内嵌翻译系统
+        const TRANSLATIONS = {
+            fr: {
+                voiceTest: {
+                    title: "Test de Voix Française",
+                    browserNotSupported: "Votre navigateur ne supporte pas Web Speech API",
+                    noFrenchVoiceDetected: "Aucune voix française détectée. Sur iOS, allez dans Réglages > Accessibilité > Contenu énoncé > Voix pour ajouter une voix française.",
+                    iosVoiceInstructions: "Sur iOS, allez dans Réglages > Accessibilité > Contenu énoncé > Voix pour ajouter une voix française.",
+                    voiceListUpdated: "Liste des voix mise à jour",
+                    noFrenchVoiceAvailable: "Aucune voix française disponible",
+                    noVoiceFound: "Aucune voix trouvée, veuillez réessayer plus tard",
+                    speechSynthesisNotSupported: "Votre navigateur ne supporte pas la synthèse vocale",
+                    noFrenchVoiceFoundUsingDefault: "Aucune voix française trouvée, utilisation de la voix par défaut",
+                    speechError: "Erreur vocale",
+                    readingStarted: "Lecture commencée",
+                    readingFinished: "Lecture terminée",
+                    testingAllFrenchVoices: "Test de toutes les voix françaises...",
+                    availableVoices: "Voix disponibles:",
+                    voicesDetected: "voix française(s) détectée(s)",
+                    currentSavedVoice: "Voix sauvegardée actuelle:",
+                    selectVoice: "Sélectionner une voix",
+                    testSelectedVoice: "Tester la voix sélectionnée",
+                    testAllVoices: "Tester toutes les voix françaises",
+                    listAllVoices: "Lister toutes les voix",
+                    saveVoice: "Sauvegarder la voix",
+                    clearSavedVoice: "Effacer la voix sauvegardée",
+                    testNumbers: "Tester avec des nombres",
+                    usingVoice: "Utilisation de la voix",
+                    // 新增：混合发音系统
+                    enhancedTestTitle: "🚀 Tests du Système de Prononciation Amélioré",
+                    pronunciationMethod: "Méthode de prononciation:",
+                    methodAuto: "Automatique (API + TTS)",
+                    methodAPI: "API Youdao (Haute qualité)",
+                    methodTTS: "Synthèse vocale (Système)",
+                    testText: "Texte à tester:",
+                    testButton: "🔊 Tester",
+                    testSequence: "🔢 Tester séquence de nombres",
+                    testMath: "➕ Tester opérations mathématiques",
+                    showStats: "📊 Statistiques du cache"
+                }
+            },
+            en: {
+                voiceTest: {
+                    title: "French Voice Test",
+                    browserNotSupported: "Your browser does not support Web Speech API",
+                    noFrenchVoiceDetected: "No French voice detected. On iOS, go to Settings > Accessibility > Spoken Content > Voices to add a French voice.",
+                    iosVoiceInstructions: "On iOS, go to Settings > Accessibility > Spoken Content > Voices to add a French voice.",
+                    voiceListUpdated: "Voice list updated",
+                    noFrenchVoiceAvailable: "No French voice available",
+                    noVoiceFound: "No voices found, please try again later",
+                    speechSynthesisNotSupported: "Your browser does not support speech synthesis",
+                    noFrenchVoiceFoundUsingDefault: "No French voice found, using default voice",
+                    speechError: "Speech error",
+                    readingStarted: "Reading started",
+                    readingFinished: "Reading finished",
+                    testingAllFrenchVoices: "Testing all French voices...",
+                    availableVoices: "Available voices:",
+                    voicesDetected: "French voice(s) detected",
+                    currentSavedVoice: "Current saved voice:",
+                    selectVoice: "Select a voice",
+                    testSelectedVoice: "Test selected voice",
+                    testAllVoices: "Test all French voices",
+                    listAllVoices: "List all voices",
+                    saveVoice: "Save voice",
+                    clearSavedVoice: "Clear saved voice",
+                    testNumbers: "Test with numbers",
+                    usingVoice: "Using voice",
+                    // 新增：混合发音系统
+                    enhancedTestTitle: "🚀 Enhanced Pronunciation System Tests",
+                    pronunciationMethod: "Pronunciation method:",
+                    methodAuto: "Auto (API + TTS)",
+                    methodAPI: "Youdao API (High quality)",
+                    methodTTS: "Text-to-Speech (System)",
+                    testText: "Text to test:",
+                    testButton: "🔊 Test",
+                    testSequence: "🔢 Test number sequence",
+                    testMath: "➕ Test math operations",
+                    showStats: "📊 Cache statistics"
+                }
+            },
+            zh: {
+                voiceTest: {
+                    title: "法语语音测试",
+                    browserNotSupported: "您的浏览器不支持Web Speech API",
+                    noFrenchVoiceDetected: "未检测到法语语音。在iOS上，请前往设置 > 辅助功能 > 朗读内容 > 语音来添加法语语音。",
+                    iosVoiceInstructions: "在iOS上，请前往设置 > 辅助功能 > 朗读内容 > 语音来添加法语语音。",
+                    voiceListUpdated: "语音列表已更新",
+                    noFrenchVoiceAvailable: "没有可用的法语语音",
+                    noVoiceFound: "未找到语音，请稍后重试",
+                    speechSynthesisNotSupported: "您的浏览器不支持语音合成",
+                    noFrenchVoiceFoundUsingDefault: "未找到法语语音，使用默认语音",
+                    speechError: "语音错误",
+                    readingStarted: "开始朗读",
+                    readingFinished: "朗读完成",
+                    testingAllFrenchVoices: "测试所有法语语音...",
+                    availableVoices: "可用语音：",
+                    voicesDetected: "检测到法语语音",
+                    currentSavedVoice: "当前保存的语音：",
+                    selectVoice: "选择语音",
+                    testSelectedVoice: "测试选中的语音",
+                    testAllVoices: "测试所有法语语音",
+                    listAllVoices: "列出所有语音",
+                    saveVoice: "保存语音",
+                    clearSavedVoice: "清除保存的语音",
+                    testNumbers: "用数字测试",
+                    usingVoice: "使用语音",
+                    // 新增：混合发音系统
+                    enhancedTestTitle: "🚀 增强发音系统测试",
+                    pronunciationMethod: "发音方式:",
+                    methodAuto: "自动 (API + TTS)",
+                    methodAPI: "有道API (高质量)",
+                    methodTTS: "语音合成 (系统)",
+                    testText: "测试文本:",
+                    testButton: "🔊 测试",
+                    testSequence: "🔢 测试数字序列",
+                    testMath: "➕ 测试数学运算",
+                    showStats: "📊 缓存统计"
+                }
+            }
+        };
+
+        let currentLanguage = 'fr';
+        let translations = TRANSLATIONS[currentLanguage];
+        const loading = "Chargement des voix...";
+        let selectedVoice = null;
+        
+        // 更新页面文本
+        function updatePageTexts() {
+            document.getElementById('page-title').textContent = translations.voiceTest.title;
+            document.getElementById('main-title').textContent = translations.voiceTest.title;
+            document.getElementById('saved-voice-label').textContent = translations.voiceTest.currentSavedVoice;
+            document.getElementById('voice-selection-title').textContent = translations.voiceTest.selectVoice;
+            document.getElementById('select-voice-label').textContent = translations.voiceTest.selectVoice + ':';
+            document.getElementById('loading-option').textContent = loading;
+            document.getElementById('testVoiceBtn').textContent = translations.voiceTest.testSelectedVoice;
+            document.getElementById('saveVoiceBtn').textContent = translations.voiceTest.saveVoice;
+            document.getElementById('clearVoiceBtn').textContent = translations.voiceTest.clearSavedVoice;
+            document.getElementById('test-section-title').textContent = translations.voiceTest.testNumbers;
+            document.getElementById('testAllBtn').textContent = translations.voiceTest.testAllVoices;
+            document.getElementById('testNumbersBtn').textContent = translations.voiceTest.testNumbers;
+            document.getElementById('listVoicesBtn').textContent = translations.voiceTest.listAllVoices;
+
+            // 更新增强发音系统的翻译
+            const enhancedTitle = document.getElementById('enhanced-test-title');
+            const methodLabel = document.getElementById('method-label');
+            const textLabel = document.getElementById('text-label');
+
+            if (enhancedTitle) enhancedTitle.textContent = translations.voiceTest.enhancedTestTitle;
+            if (methodLabel) methodLabel.textContent = translations.voiceTest.pronunciationMethod;
+            if (textLabel) textLabel.textContent = translations.voiceTest.testText;
+
+            // 更新选择框选项
+            const methodSelect = document.getElementById('pronunciationMethod');
+            if (methodSelect) {
+                methodSelect.options[0].textContent = translations.voiceTest.methodAuto;
+                methodSelect.options[1].textContent = translations.voiceTest.methodAPI;
+                methodSelect.options[2].textContent = translations.voiceTest.methodTTS;
+            }
+        }
+        
+        // 语言切换
+        document.getElementById('languageSelect').addEventListener('change', (e) => {
+            currentLanguage = e.target.value;
+            translations = TRANSLATIONS[currentLanguage];
+            updatePageTexts();
+            localStorage.setItem('selectedLanguage', currentLanguage);
+        });
+        
+        // 恢复保存的语言
+        const savedLanguage = localStorage.getItem('selectedLanguage');
+        if (savedLanguage && TRANSLATIONS[savedLanguage]) {
+            currentLanguage = savedLanguage;
+            translations = TRANSLATIONS[currentLanguage];
+            document.getElementById('languageSelect').value = savedLanguage;
+            updatePageTexts();
+        }
+        
+        function showWarning(message) {
+            const warning = document.getElementById('warning');
+            warning.textContent = message;
+            warning.style.display = 'block';
+        }
+        
+        function showInfo(message) {
+            const info = document.getElementById('info');
+            info.textContent = message;
+            info.style.display = 'block';
+        }
+        
+        function clearMessages() {
+            document.getElementById('warning').style.display = 'none';
+            document.getElementById('info').style.display = 'none';
+        }
+        
+        function getAllFrenchVoices() {
+            if (!window.speechSynthesis) return [];
+            
+            const voices = window.speechSynthesis.getVoices();
+            
+            return voices.filter(voice => {
+                const isFrench = /fr/i.test(voice.lang) || /french/i.test(voice.name);
+                return isFrench;
+            });
+        }
+        
+        function getFrenchVoice() {
+            const frenchVoices = getAllFrenchVoices();
+            
+            try {
+                const savedVoiceData = localStorage.getItem('selectedFrenchVoice');
+                if (savedVoiceData) {
+                    const voiceData = JSON.parse(savedVoiceData);
+                    const matchingVoice = frenchVoices.find(voice =>
+                        voice.voiceURI === voiceData.voiceURI ||
+                        (voice.name === voiceData.name && voice.lang === voiceData.lang)
+                    );
+                    if (matchingVoice) {
+                        return matchingVoice;
+                    }
+                }
+            } catch (error) {
+                console.warn('Error loading saved voice:', error);
+            }
+            
+            return frenchVoices.length > 0 ? frenchVoices[0] : null;
+        }
+        
+        function populateVoiceSelector() {
+            const select = document.getElementById('voiceSelect');
+            const frenchVoices = getAllFrenchVoices();
+            
+            select.innerHTML = '';
+            
+            frenchVoices.forEach((voice, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${voice.name} (${voice.lang})`;
+                select.appendChild(option);
+            });
+
+            if (frenchVoices.length === 0) {
+                const option = document.createElement('option');
+                option.textContent = translations.voiceTest.noFrenchVoiceAvailable;
+                option.disabled = true;
+                select.appendChild(option);
+            }
+
+            restoreSavedVoice();
+            updateButtonStates();
+            updateSavedVoiceStatus();
+        }
+        
+        // 将全局函数暴露到window对象
+        window.testFrenchVoice = testFrenchVoice;
+        window.saveSelectedVoice = saveSelectedVoice;
+        window.clearSavedVoice = clearSavedVoice;
+        window.testAllFrenchVoices = testAllFrenchVoices;
+        window.testWithNumbers = testWithNumbers;
+        window.listVoices = listVoices;
+        
+        function restoreSavedVoice() {
+            try {
+                const savedVoiceData = localStorage.getItem('selectedFrenchVoice');
+                if (savedVoiceData) {
+                    const voiceData = JSON.parse(savedVoiceData);
+                    const frenchVoices = getAllFrenchVoices();
+                    const select = document.getElementById('voiceSelect');
+
+                    const matchingVoiceIndex = frenchVoices.findIndex(voice =>
+                        voice.voiceURI === voiceData.voiceURI ||
+                        (voice.name === voiceData.name && voice.lang === voiceData.lang)
+                    );
+
+                    if (matchingVoiceIndex !== -1) {
+                        select.selectedIndex = matchingVoiceIndex;
+                        selectedVoice = frenchVoices[matchingVoiceIndex];
+                    }
+                }
+            } catch (error) {
+                console.warn('Error restoring saved voice:', error);
+            }
+        }
+
+        function updateButtonStates() {
+            const frenchVoices = getAllFrenchVoices();
+            const hasVoices = frenchVoices.length > 0;
+
+            document.getElementById('testVoiceBtn').disabled = !hasVoices;
+            document.getElementById('saveVoiceBtn').disabled = !hasVoices;
+        }
+
+        function updateSavedVoiceStatus() {
+            const statusDiv = document.getElementById('savedVoiceStatus');
+            const infoSpan = document.getElementById('savedVoiceInfo');
+
+            try {
+                const savedVoiceData = localStorage.getItem('selectedFrenchVoice');
+                if (savedVoiceData) {
+                    const voiceData = JSON.parse(savedVoiceData);
+                    infoSpan.textContent = `${voiceData.name} (${voiceData.lang})`;
+                    statusDiv.style.display = 'block';
+                } else {
+                    statusDiv.style.display = 'none';
+                }
+            } catch (error) {
+                statusDiv.style.display = 'none';
+            }
+        }
+
+        function saveSelectedVoice() {
+            const select = document.getElementById('voiceSelect');
+            const frenchVoices = getAllFrenchVoices();
+
+            if (select.selectedIndex >= 0 && select.selectedIndex < frenchVoices.length) {
+                const selectedVoice = frenchVoices[select.selectedIndex];
+                const voiceData = {
+                    name: selectedVoice.name,
+                    lang: selectedVoice.lang,
+                    voiceURI: selectedVoice.voiceURI
+                };
+
+                localStorage.setItem('selectedFrenchVoice', JSON.stringify(voiceData));
+                showInfo(`${translations.voiceTest.saveVoice}: ${selectedVoice.name} (${selectedVoice.lang})`);
+                updateSavedVoiceStatus();
+            }
+        }
+
+        function clearSavedVoice() {
+            localStorage.removeItem('selectedFrenchVoice');
+            showInfo(translations.voiceTest.clearSavedVoice);
+            updateSavedVoiceStatus();
+        }
+
+        function testFrenchVoice() {
+            if (!window.speechSynthesis) {
+                showWarning(translations.voiceTest.speechSynthesisNotSupported);
+                return;
+            }
+
+            clearMessages();
+
+            const utterance = new SpeechSynthesisUtterance('Bonjour, je teste la voix française. Les nombres: vingt-trois, quarante-sept, soixante-dix-huit.');
+            utterance.lang = 'fr-FR';
+
+            const frenchVoice = getFrenchVoice();
+            if (frenchVoice) {
+                utterance.voice = frenchVoice;
+                showInfo(`${translations.voiceTest.usingVoice}: ${frenchVoice.name} (${frenchVoice.lang})`);
+            } else {
+                showWarning(translations.voiceTest.noFrenchVoiceFoundUsingDefault);
+            }
+
+            utterance.onerror = (event) => {
+                showWarning(`${translations.voiceTest.speechError}: ${event.error}`);
+            };
+
+            utterance.onstart = () => {
+                console.log(translations.voiceTest.readingStarted);
+            };
+
+            utterance.onend = () => {
+                console.log(translations.voiceTest.readingFinished);
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function testWithNumbers() {
+            if (!window.speechSynthesis) {
+                showWarning(translations.voiceTest.speechSynthesisNotSupported);
+                return;
+            }
+
+            clearMessages();
+
+            const numbers = ['quinze', 'vingt-trois', 'quarante-sept', 'soixante-dix-huit', 'quatre-vingt-douze'];
+            const text = `${translations.voiceTest.testNumbers}: ${numbers.join(', ')}.`;
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'fr-FR';
+
+            const frenchVoice = getFrenchVoice();
+            if (frenchVoice) {
+                utterance.voice = frenchVoice;
+                showInfo(`${translations.voiceTest.usingVoice}: ${frenchVoice.name} (${frenchVoice.lang})`);
+            } else {
+                showWarning(translations.voiceTest.noFrenchVoiceFoundUsingDefault);
+            }
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function testAllFrenchVoices() {
+            const frenchVoices = getAllFrenchVoices();
+            if (frenchVoices.length === 0) {
+                showWarning(translations.voiceTest.noFrenchVoiceAvailable);
+                return;
+            }
+
+            clearMessages();
+            showInfo(translations.voiceTest.testingAllFrenchVoices);
+
+            let currentIndex = 0;
+
+            function testNextVoice() {
+                if (currentIndex >= frenchVoices.length) {
+                    showInfo(`${translations.voiceTest.testCompleted || 'Test terminé'}`);
+                    return;
+                }
+
+                const voice = frenchVoices[currentIndex];
+                const utterance = new SpeechSynthesisUtterance(`Voix ${currentIndex + 1}: ${voice.name}. Bonjour, vingt-trois.`);
+                utterance.voice = voice;
+                utterance.lang = 'fr-FR';
+
+                utterance.onend = () => {
+                    currentIndex++;
+                    setTimeout(testNextVoice, 1000);
+                };
+
+                utterance.onerror = () => {
+                    currentIndex++;
+                    setTimeout(testNextVoice, 500);
+                };
+
+                window.speechSynthesis.speak(utterance);
+            }
+
+            testNextVoice();
+        }
+
+        function listVoices() {
+            const voiceList = document.getElementById('voiceList');
+            const voices = window.speechSynthesis.getVoices();
+
+            if (voices.length === 0) {
+                voiceList.innerHTML = `<p>${translations.voiceTest.noVoiceFound}</p>`;
+                voiceList.style.display = 'block';
+                return;
+            }
+
+            let html = `<h3>${translations.voiceTest.availableVoices}</h3><ul>`;
+            voices.forEach((voice, index) => {
+                const isFrench = /fr/i.test(voice.lang) || /french/i.test(voice.name);
+                const marker = isFrench ? '🇫🇷 ' : '';
+                html += `<li>${marker}${voice.name} (${voice.lang}) - ${voice.voiceURI}</li>`;
+            });
+            html += '</ul>';
+
+            voiceList.innerHTML = html;
+            voiceList.style.display = 'block';
+        }
+
+        window.addEventListener('load', () => {
+            if (!window.speechSynthesis) {
+                showWarning(translations.voiceTest.browserNotSupported);
+                return;
+            }
+
+            function checkVoices() {
+                const voices = window.speechSynthesis.getVoices();
+                if (voices.length === 0) {
+                    setTimeout(checkVoices, 100);
+                    return;
+                }
+
+                populateVoiceSelector();
+
+                const frenchVoices = getAllFrenchVoices();
+                if (frenchVoices.length === 0) {
+                    showWarning(translations.voiceTest.noFrenchVoiceDetected);
+                } else {
+                    showInfo(`${frenchVoices.length} ${translations.voiceTest.voicesDetected}`);
+                }
+            }
+
+            checkVoices();
+        });
+
+        window.speechSynthesis.onvoiceschanged = () => {
+            console.log(translations.voiceTest.voiceListUpdated);
+            populateVoiceSelector();
+        };
+
+        // ========== 混合发音系统测试功能 ==========
+
+        // 简化版的发音管理器（用于测试）
+        class TestPronunciationManager {
+            constructor() {
+                this.config = {
+                    preferredMethod: 'auto',
+                    timeout: 5000,
+                    volume: 1
+                };
+                this.cache = new Map();
+                this.stats = {
+                    totalRequests: 0,
+                    cacheHits: 0,
+                    googleTtsSuccess: 0,
+                    apiSuccess: 0,
+                    ttsSuccess: 0
+                };
+            }
+
+            // 生成Google TTS URL
+            generateGoogleTtsUrl(text) {
+                // Google Translate TTS API
+                const baseUrl = 'https://translate.google.com/translate_tts';
+                const params = new URLSearchParams({
+                    ie: 'UTF-8',
+                    q: text,
+                    tl: 'fr', // 法语
+                    client: 'tw-ob',
+                    ttsspeed: '1' // 正常语速
+                });
+
+                // 检测环境并决定是否使用代理
+                const isHttpServer = window.location.protocol === 'http:' && window.location.hostname === 'localhost';
+                const directUrl = `${baseUrl}?${params.toString()}`;
+
+                if (isHttpServer) {
+                    // HTTP环境：直接尝试
+                    return directUrl;
+                } else {
+                    // file://环境：使用代理
+                    const proxyUrl = 'https://api.allorigins.win/raw?url=';
+                    return proxyUrl + encodeURIComponent(directUrl);
+                }
+            }
+
+            // 生成有道API URL (保留作为备选)
+            generateYoudaoUrl(text) {
+                // 检测是否通过HTTP服务器访问
+                const isHttpServer = window.location.protocol === 'http:' && window.location.hostname === 'localhost';
+
+                if (isHttpServer) {
+                    // HTTP服务器环境：直接访问API
+                    return `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(text)}&le=fr`;
+                } else {
+                    // file:// 协议：使用CORS代理
+                    const proxyUrl = 'https://api.allorigins.win/raw?url=';
+                    const apiUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(text)}&le=fr`;
+                    return proxyUrl + encodeURIComponent(apiUrl);
+                }
+            }
+
+            // Google TTS播放方法
+            async playWithGoogleTTS(text) {
+                try {
+                    // 检查缓存
+                    if (this.cache.has(`google_${text}`)) {
+                        const audio = this.cache.get(`google_${text}`);
+                        audio.currentTime = 0;
+                        await this.playAudio(audio);
+                        this.stats.cacheHits++;
+                        return { success: true, method: 'google', fromCache: true };
+                    }
+
+                    // 尝试多个代理服务
+                    const isHttpServer = window.location.protocol === 'http:' && window.location.hostname === 'localhost';
+                    const proxies = isHttpServer ? [
+                        '', // HTTP环境：优先直接访问
+                        'https://api.allorigins.win/raw?url=',
+                        'https://cors-anywhere.herokuapp.com/'
+                    ] : [
+                        'https://api.allorigins.win/raw?url=',
+                        'https://cors-anywhere.herokuapp.com/',
+                        '' // file://环境：最后尝试直接访问
+                    ];
+
+                    let lastError = null;
+
+                    for (let i = 0; i < proxies.length; i++) {
+                        try {
+                            const url = this.generateGoogleTtsUrlWithProxy(text, proxies[i]);
+                            console.log(`🔄 尝试Google TTS代理 ${i + 1}/${proxies.length}: ${proxies[i] || '直接访问'}`);
+
+                            const audio = await this.loadAudio(url);
+
+                            // 缓存音频
+                            this.cache.set(`google_${text}`, audio);
+
+                            // 播放音频
+                            await this.playAudio(audio);
+                            this.stats.googleTtsSuccess++;
+                            console.log(`✅ Google TTS代理 ${i + 1} 成功`);
+                            return { success: true, method: 'google', fromCache: false };
+                        } catch (error) {
+                            console.warn(`❌ Google TTS代理 ${i + 1} 失败:`, error.message);
+                            lastError = error;
+                            continue;
+                        }
+                    }
+
+                    // 所有代理都失败
+                    throw lastError || new Error('所有Google TTS代理都失败');
+                } catch (error) {
+                    console.error('Google TTS播放失败:', error);
+                    return { success: false, method: 'google', error: error.message };
+                }
+            }
+
+            // 使用指定代理生成Google TTS URL
+            generateGoogleTtsUrlWithProxy(text, proxy) {
+                const baseUrl = 'https://translate.google.com/translate_tts';
+                const params = new URLSearchParams({
+                    ie: 'UTF-8',
+                    q: text,
+                    tl: 'fr',
+                    client: 'tw-ob',
+                    ttsspeed: '1'
+                });
+                const directUrl = `${baseUrl}?${params.toString()}`;
+
+                if (!proxy) {
+                    return directUrl; // 直接访问
+                } else if (proxy.includes('allorigins')) {
+                    return proxy + encodeURIComponent(directUrl);
+                } else {
+                    return proxy + directUrl;
+                }
+            }
+
+            // API播放方法 (有道API，保留作为备选)
+            async playWithAPI(text) {
+                try {
+                    // 检查缓存
+                    if (this.cache.has(text)) {
+                        const audio = this.cache.get(text);
+                        audio.currentTime = 0;
+                        await this.playAudio(audio);
+                        this.stats.cacheHits++;
+                        return { success: true, method: 'api', fromCache: true };
+                    }
+
+                    // 根据环境选择代理策略
+                    const isHttpServer = window.location.protocol === 'http:' && window.location.hostname === 'localhost';
+                    const proxies = isHttpServer ? [
+                        '', // HTTP环境：优先直接访问
+                        'https://api.allorigins.win/raw?url=',
+                        'https://cors-anywhere.herokuapp.com/'
+                    ] : [
+                        'https://api.allorigins.win/raw?url=',
+                        'https://cors-anywhere.herokuapp.com/',
+                        '' // file://环境：最后尝试直接访问
+                    ];
+
+                    let lastError = null;
+
+                    for (let i = 0; i < proxies.length; i++) {
+                        try {
+                            const url = this.generateYoudaoUrlWithProxy(text, proxies[i]);
+                            console.log(`🔄 尝试代理 ${i + 1}/${proxies.length}: ${proxies[i] || '直接访问'}`);
+
+                            const audio = await this.loadAudio(url);
+
+                            // 缓存音频
+                            this.cache.set(text, audio);
+
+                            // 播放音频
+                            await this.playAudio(audio);
+                            this.stats.apiSuccess++;
+                            console.log(`✅ 代理 ${i + 1} 成功`);
+                            return { success: true, method: 'api', fromCache: false };
+                        } catch (error) {
+                            console.warn(`❌ 代理 ${i + 1} 失败:`, error.message);
+                            lastError = error;
+                            continue;
+                        }
+                    }
+
+                    // 所有代理都失败
+                    throw lastError || new Error('所有API代理都失败');
+                } catch (error) {
+                    console.error('API播放失败:', error);
+                    return { success: false, method: 'api', error: error.message };
+                }
+            }
+
+            // 使用指定代理生成URL
+            generateYoudaoUrlWithProxy(text, proxy) {
+                const apiUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(text)}&le=fr`;
+
+                if (!proxy) {
+                    return apiUrl; // 直接访问
+                } else if (proxy.includes('allorigins')) {
+                    return proxy + encodeURIComponent(apiUrl);
+                } else {
+                    return proxy + apiUrl;
+                }
+            }
+
+            // TTS播放方法
+            async playWithTTS(text) {
+                try {
+                    console.log('🔊 TTS播放开始:', text);
+
+                    if (!window.speechSynthesis) {
+                        throw new Error('浏览器不支持语音合成');
+                    }
+
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'fr-FR';
+                    utterance.volume = this.config.volume;
+                    utterance.rate = 0.9;
+                    utterance.pitch = 1.1;
+
+                    // 获取最佳法语语音
+                    const voice = getFrenchVoice();
+                    console.log('🎤 选择的语音:', voice ? voice.name : '默认语音');
+                    if (voice) {
+                        utterance.voice = voice;
+                    }
+
+                    console.log('🔊 开始TTS播放...');
+                    await this.speakTTS(utterance);
+                    console.log('✅ TTS播放成功');
+                    this.stats.ttsSuccess++;
+                    return { success: true, method: 'tts', fromCache: false };
+                } catch (error) {
+                    console.error('❌ TTS播放失败:', error);
+                    return { success: false, method: 'tts', error: error.message };
+                }
+            }
+
+            // 主播放方法
+            async playPronunciation(text) {
+                this.stats.totalRequests++;
+
+                let result;
+                const method = this.config.preferredMethod;
+
+                console.log(`🎵 开始播放: "${text}", 方法: ${method}`);
+
+                if (method === 'google') {
+                    // 纯Google TTS模式
+                    console.log('🔊 使用Google TTS播放...');
+                    result = await this.playWithGoogleTTS(text);
+                    console.log('🔊 Google TTS结果:', result);
+                } else if (method === 'api') {
+                    // 纯有道API模式
+                    console.log('📡 尝试有道API播放...');
+                    result = await this.playWithAPI(text);
+                    console.log('📡 API结果:', result);
+                } else if (method === 'tts') {
+                    // 纯系统TTS模式
+                    console.log('🔊 直接使用系统TTS播放...');
+                    result = await this.playWithTTS(text);
+                    console.log('🔊 TTS结果:', result);
+                } else if (method === 'auto') {
+                    // 自动模式：Google TTS → 有道API → 系统TTS
+                    console.log('🔊 尝试Google TTS播放...');
+                    result = await this.playWithGoogleTTS(text);
+                    console.log('🔊 Google TTS结果:', result);
+
+                    if (!result.success) {
+                        console.log('🔄 Google TTS失败，尝试有道API...');
+                        showEnhancedInfo('Google TTS失败，尝试有道API...');
+                        result = await this.playWithAPI(text);
+                        console.log('📡 API结果:', result);
+
+                        if (!result.success) {
+                            console.log('🔄 API也失败，回退到系统TTS...');
+                            showEnhancedInfo('API失败，回退到系统TTS...');
+                            result = await this.playWithTTS(text);
+                            console.log('🔊 系统TTS结果:', result);
+                        }
+                    }
+                }
+
+                console.log('✅ 最终结果:', result);
+                return result;
+            }
+
+            // 加载音频
+            async loadAudio(url) {
+                return new Promise((resolve, reject) => {
+                    const audio = new Audio();
+                    const timeoutId = setTimeout(() => {
+                        reject(new Error('音频加载超时'));
+                    }, this.config.timeout);
+
+                    audio.oncanplaythrough = () => {
+                        clearTimeout(timeoutId);
+                        resolve(audio);
+                    };
+
+                    audio.onerror = () => {
+                        clearTimeout(timeoutId);
+                        reject(new Error('音频加载失败'));
+                    };
+
+                    audio.crossOrigin = 'anonymous';
+                    audio.src = url;
+                    audio.load();
+                });
+            }
+
+            // 播放音频
+            async playAudio(audio) {
+                return new Promise((resolve, reject) => {
+                    audio.onended = resolve;
+                    audio.onerror = () => reject(new Error('音频播放失败'));
+                    audio.play().catch(reject);
+                });
+            }
+
+            // TTS播放
+            async speakTTS(utterance) {
+                return new Promise((resolve, reject) => {
+                    console.log('🎙️ 设置TTS事件监听器...');
+
+                    utterance.onstart = () => {
+                        console.log('▶️ TTS开始播放');
+                    };
+
+                    utterance.onend = () => {
+                        console.log('⏹️ TTS播放结束');
+                        resolve();
+                    };
+
+                    utterance.onerror = (event) => {
+                        console.error('❌ TTS播放错误:', event.error);
+                        if (event.error !== 'canceled' && event.error !== 'interrupted') {
+                            reject(new Error(`TTS错误: ${event.error}`));
+                        } else {
+                            console.log('ℹ️ TTS被取消或中断，视为成功');
+                            resolve();
+                        }
+                    };
+
+                    console.log('🔄 取消之前的TTS播放...');
+                    window.speechSynthesis.cancel();
+
+                    console.log('🎵 开始新的TTS播放...');
+                    window.speechSynthesis.speak(utterance);
+
+                    // 添加超时保护
+                    setTimeout(() => {
+                        if (window.speechSynthesis.speaking) {
+                            console.warn('⚠️ TTS播放超时，强制结束');
+                            window.speechSynthesis.cancel();
+                            resolve(); // 超时也视为成功，避免卡住
+                        }
+                    }, 10000); // 10秒超时
+                });
+            }
+
+            // 获取统计信息
+            getStats() {
+                const hitRate = this.stats.totalRequests > 0 ?
+                    (this.stats.cacheHits / this.stats.totalRequests * 100).toFixed(1) : 0;
+
+                return {
+                    ...this.stats,
+                    cacheSize: this.cache.size,
+                    hitRate: hitRate + '%'
+                };
+            }
+
+            // 清除缓存
+            clearCache() {
+                this.cache.clear();
+            }
+
+            // 更新配置
+            updateConfig(newConfig) {
+                this.config = { ...this.config, ...newConfig };
+            }
+        }
+
+        // 创建测试管理器实例
+        const testPronunciationManager = new TestPronunciationManager();
+
+        // UI辅助函数
+        function showEnhancedInfo(message) {
+            const info = document.getElementById('enhancedInfo');
+            info.textContent = message;
+            info.style.display = 'block';
+
+            const warning = document.getElementById('enhancedWarning');
+            warning.style.display = 'none';
+        }
+
+        function showEnhancedWarning(message) {
+            const warning = document.getElementById('enhancedWarning');
+            warning.textContent = message;
+            warning.style.display = 'block';
+
+            const info = document.getElementById('enhancedInfo');
+            info.style.display = 'none';
+        }
+
+        function clearEnhancedMessages() {
+            document.getElementById('enhancedInfo').style.display = 'none';
+            document.getElementById('enhancedWarning').style.display = 'none';
+        }
+
+        // 更新发音方法
+        function updatePronunciationMethod() {
+            const select = document.getElementById('pronunciationMethod');
+            const method = select.value;
+            testPronunciationManager.updateConfig({ preferredMethod: method });
+            showEnhancedInfo(`发音方法已切换到: ${select.options[select.selectedIndex].text}`);
+        }
+
+        // 测试增强发音功能
+        async function testEnhancedPronunciation() {
+            const textInput = document.getElementById('testText');
+            const text = textInput.value.trim();
+
+            if (!text) {
+                showEnhancedWarning('请输入要测试的文本');
+                return;
+            }
+
+            clearEnhancedMessages();
+            showEnhancedInfo('正在播放...');
+
+            console.log('🧪 开始测试发音:', text);
+            const startTime = Date.now();
+
+            try {
+                const result = await testPronunciationManager.playPronunciation(text);
+                const duration = Date.now() - startTime;
+
+                console.log('🧪 测试结果:', result);
+
+                if (result.success) {
+                    const cacheText = result.fromCache ? ' (来自缓存)' : '';
+                    const methodText = result.method === 'api' ? 'API Youdao' : '系统TTS';
+                    showEnhancedInfo(`✅ 播放成功！方法: ${methodText}${cacheText}, 耗时: ${duration}ms`);
+                } else {
+                    showEnhancedWarning(`❌ 播放失败: ${result.error || '未知错误'}`);
+                    console.error('🧪 播放失败详情:', result);
+                }
+
+                updateStatusDisplay();
+            } catch (error) {
+                console.error('🧪 测试异常:', error);
+                showEnhancedWarning(`❌ 播放错误: ${error.message}`);
+                updateStatusDisplay();
+            }
+        }
+
+        // 测试数字序列
+        async function testNumberSequence() {
+            const numbers = ['quinze', 'vingt-trois', 'quarante-sept', 'soixante-dix-huit', 'quatre-vingt-douze'];
+
+            clearEnhancedMessages();
+            showEnhancedInfo('正在测试数字序列...');
+
+            let successCount = 0;
+            let totalTime = 0;
+
+            for (let i = 0; i < numbers.length; i++) {
+                const number = numbers[i];
+                showEnhancedInfo(`正在播放: ${number} (${i + 1}/${numbers.length})`);
+
+                const startTime = Date.now();
+                try {
+                    const result = await testPronunciationManager.playPronunciation(number);
+                    const duration = Date.now() - startTime;
+                    totalTime += duration;
+
+                    if (result.success) {
+                        successCount++;
+                    }
+
+                    // 播放间隔
+                    if (i < numbers.length - 1) {
+                        await new Promise(resolve => setTimeout(resolve, 800));
+                    }
+                } catch (error) {
+                    console.warn(`数字 ${number} 播放失败:`, error);
+                }
+            }
+
+            const avgTime = Math.round(totalTime / numbers.length);
+            showEnhancedInfo(`✅ 数字序列测试完成！成功: ${successCount}/${numbers.length}, 平均耗时: ${avgTime}ms`);
+            updateStatusDisplay();
+        }
+
+        // 测试数学运算
+        async function testMathOperations() {
+            const operations = [
+                'quinze plus huit',
+                'vingt-trois moins sept',
+                'quatre fois six',
+                'trente-six divisé par quatre'
+            ];
+
+            clearEnhancedMessages();
+            showEnhancedInfo('正在测试数学运算...');
+
+            let successCount = 0;
+
+            for (let i = 0; i < operations.length; i++) {
+                const operation = operations[i];
+                showEnhancedInfo(`正在播放: ${operation} (${i + 1}/${operations.length})`);
+
+                try {
+                    const result = await testPronunciationManager.playPronunciation(operation);
+                    if (result.success) {
+                        successCount++;
+                    }
+
+                    // 播放间隔
+                    if (i < operations.length - 1) {
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    }
+                } catch (error) {
+                    console.warn(`运算 ${operation} 播放失败:`, error);
+                }
+            }
+
+            showEnhancedInfo(`✅ 数学运算测试完成！成功: ${successCount}/${operations.length}`);
+            updateStatusDisplay();
+        }
+
+        // 显示缓存统计
+        function showCacheStats() {
+            const stats = testPronunciationManager.getStats();
+            const display = document.getElementById('cacheStatsDisplay');
+            const content = document.getElementById('cacheStatsContent');
+
+            content.innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div><strong>总请求数:</strong> ${stats.totalRequests}</div>
+                    <div><strong>缓存命中:</strong> ${stats.cacheHits}</div>
+                    <div><strong>Google TTS成功:</strong> ${stats.googleTtsSuccess}</div>
+                    <div><strong>有道API成功:</strong> ${stats.apiSuccess}</div>
+                    <div><strong>系统TTS成功:</strong> ${stats.ttsSuccess}</div>
+                    <div><strong>缓存大小:</strong> ${stats.cacheSize} 项</div>
+                    <div><strong>命中率:</strong> ${stats.hitRate}</div>
+                </div>
+                <div style="margin-top: 10px;">
+                    <button class="button" onclick="clearTestCache()" style="background-color: #dc3545;">清除缓存</button>
+                </div>
+            `;
+
+            display.style.display = 'block';
+        }
+
+        // 清除测试缓存
+        function clearTestCache() {
+            testPronunciationManager.clearCache();
+            showEnhancedInfo('✅ 缓存已清除');
+            showCacheStats(); // 刷新统计显示
+        }
+
+        // 更新状态显示
+        function updateStatusDisplay() {
+            const display = document.getElementById('pronunciationStatus');
+            const content = document.getElementById('statusContent');
+            const stats = testPronunciationManager.getStats();
+
+            content.innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 15px; text-align: center;">
+                    <div>
+                        <div style="font-size: 24px; color: #007bff;">${stats.totalRequests}</div>
+                        <div style="font-size: 12px; color: #666;">总请求</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 24px; color: #28a745;">${stats.googleTtsSuccess}</div>
+                        <div style="font-size: 12px; color: #666;">Google TTS</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 24px; color: #ffc107;">${stats.apiSuccess}</div>
+                        <div style="font-size: 12px; color: #666;">有道API</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 24px; color: #17a2b8;">${stats.ttsSuccess}</div>
+                        <div style="font-size: 12px; color: #666;">系统TTS</div>
+                    </div>
+                </div>
+            `;
+
+            display.style.display = 'block';
+        }
+
+        // 键盘快捷键支持
+        document.addEventListener('keydown', function(event) {
+            if (event.ctrlKey || event.metaKey) {
+                switch(event.key) {
+                    case 'Enter':
+                        event.preventDefault();
+                        testEnhancedPronunciation();
+                        break;
+                    case '1':
+                        event.preventDefault();
+                        document.getElementById('pronunciationMethod').value = 'auto';
+                        updatePronunciationMethod();
+                        break;
+                    case '2':
+                        event.preventDefault();
+                        document.getElementById('pronunciationMethod').value = 'api';
+                        updatePronunciationMethod();
+                        break;
+                    case '3':
+                        event.preventDefault();
+                        document.getElementById('pronunciationMethod').value = 'tts';
+                        updatePronunciationMethod();
+                        break;
+                }
+            }
+        });
+
+        // 文本输入框回车键支持
+        document.getElementById('testText').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                testEnhancedPronunciation();
+            }
+        });
+    </script>
+</body>
+</html>

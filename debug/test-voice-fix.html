@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Voice Fix Verification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-section">
+        <h1>Voice Test Page Fix Verification</h1>
+        <p>This page tests if the voice-test.html fixes are working correctly.</p>
+        
+        <div id="test-results"></div>
+        
+        <button class="button" onclick="runTests()">Run Tests</button>
+        <button class="button" onclick="openVoiceTestPage()">Open Voice Test Page</button>
+    </div>
+
+    <script>
+        function addResult(message, isSuccess) {
+            const resultsDiv = document.getElementById('test-results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${isSuccess ? 'success' : 'error'}`;
+            resultDiv.textContent = message;
+            resultsDiv.appendChild(resultDiv);
+        }
+
+        function runTests() {
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = '';
+
+            // Test 1: Check if voice-test.html exists and is accessible
+            fetch('/debug/voice-test.html')
+                .then(response => {
+                    if (response.ok) {
+                        addResult('✓ voice-test.html is accessible', true);
+                        return response.text();
+                    } else {
+                        throw new Error('File not accessible');
+                    }
+                })
+                .then(html => {
+                    // Test 2: Check if the page has the correct structure
+                    if (html.includes('interfaceLanguageSelect') && html.includes('testLanguageSelect')) {
+                        addResult('✓ Language selectors are present', true);
+                    } else {
+                        addResult('✗ Language selectors are missing', false);
+                    }
+
+                    // Test 3: Check if translations are properly initialized
+                    if (html.includes('translations = TRANSLATIONS[currentInterfaceLanguage]')) {
+                        addResult('✓ Translations are properly initialized', true);
+                    } else {
+                        addResult('✗ Translations initialization issue', false);
+                    }
+
+                    // Test 4: Check if layout is properly merged (only 2 containers)
+                    const containerMatches = html.match(/<div class="container">/g);
+                    if (containerMatches && containerMatches.length === 2) {
+                        addResult('✓ Layout properly merged to 2 containers', true);
+                    } else {
+                        addResult(`✗ Layout issue: found ${containerMatches ? containerMatches.length : 0} containers instead of 2`, false);
+                    }
+
+                    // Test 5: Check if all 14 dictation languages are supported
+                    if (html.includes('da-DK') && html.includes('sv-SE')) {
+                        addResult('✓ All 14 dictation languages are supported', true);
+                    } else {
+                        addResult('✗ Not all dictation languages are supported', false);
+                    }
+
+                    // Test 6: Check if populateTestLanguageSelector function exists
+                    if (html.includes('populateTestLanguageSelector')) {
+                        addResult('✓ Test language selector function exists', true);
+                    } else {
+                        addResult('✗ Test language selector function missing', false);
+                    }
+
+                    // Test 7: Check if console logging is added for debugging
+                    if (html.includes('console.log') && html.includes('Populating test language selector')) {
+                        addResult('✓ Debug logging added', true);
+                    } else {
+                        addResult('✗ Debug logging missing', false);
+                    }
+
+                    addResult('Tests completed. Check results above.', true);
+                })
+                .catch(error => {
+                    addResult('✗ Failed to load voice-test.html: ' + error.message, false);
+                });
+        }
+
+        function openVoiceTestPage() {
+            window.open('/debug/voice-test.html', '_blank');
+        }
+    </script>
+</body>
+</html>

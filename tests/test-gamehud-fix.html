@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameHUD修复测试</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: #f8fafc;
+        }
+        
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        
+        .test-result.pass {
+            background: #c6f6d5;
+            border-left: 4px solid #38a169;
+        }
+        
+        .test-result.fail {
+            background: #fed7d7;
+            border-left: 4px solid #e53e3e;
+        }
+        
+        .test-result.info {
+            background: #bee3f8;
+            border-left: 4px solid #3182ce;
+        }
+        
+        button {
+            background: #4299e1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #3182ce;
+        }
+        
+        .mock-hud {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            padding: 0.75rem;
+            font-size: 14px;
+            z-index: 1000;
+        }
+        
+        .mock-hud .level-display {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .mock-hud .level-icon {
+            width: 20px;
+            height: 20px;
+            background: #fef3c7;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #f59e0b;
+        }
+        
+        .mock-hud .exp-bar {
+            width: 100px;
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        
+        .mock-hud .exp-fill {
+            height: 100%;
+            background: #14b8a6;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 GameHUD修复测试</h1>
+        
+        <div class="test-section">
+            <h2>🧪 GameDataManager测试</h2>
+            <button onclick="testGameDataManager()">测试GameDataManager</button>
+            <div id="gamedata-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>📊 经验进度计算测试</h2>
+            <button onclick="testExperienceProgress()">测试经验进度</button>
+            <div id="progress-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🎮 模拟HUD显示</h2>
+            <button onclick="simulateHUD()">模拟HUD</button>
+            <button onclick="clearMockHUD()">清除HUD</button>
+            <div id="hud-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🔄 数据更新测试</h2>
+            <button onclick="simulateDataUpdate()">模拟数据更新</button>
+            <div id="update-results"></div>
+        </div>
+    </div>
+
+    <script>
+        // 模拟GameDataManager的核心功能
+        class MockGameDataManager {
+            static calculateLevel(experience) {
+                const safeExperience = Math.max(0, experience);
+                
+                if (safeExperience === 0) return 1;
+                
+                // 使用二分查找优化性能
+                let left = 1;
+                let right = 100;
+                let result = 1;
+                
+                while (left <= right) {
+                    const mid = Math.floor((left + right) / 2);
+                    const requiredExp = this.getExperienceRequiredForLevel(mid);
+                    
+                    if (requiredExp <= safeExperience) {
+                        result = mid;
+                        left = mid + 1;
+                    } else {
+                        right = mid - 1;
+                    }
+                }
+                
+                return result;
+            }
+
+            static getExperienceRequiredForLevel(level) {
+                const safeLevel = Math.max(1, Math.min(level, 100));
+                
+                if (safeLevel <= 1) return 0;
+                
+                let totalExp = 0;
+                
+                // 第一阶段 (2-10级): 快速升级期
+                for (let i = 2; i <= Math.min(safeLevel, 10); i++) {
+                    const expForLevel = Math.floor(100 * Math.pow(1.4, i - 2));
+                    totalExp += expForLevel;
+                }
+                
+                // 第二阶段 (11-30级): 稳定增长期
+                if (safeLevel > 10) {
+                    for (let i = 11; i <= Math.min(safeLevel, 30); i++) {
+                        const additionalLevel = i - 10;
+                        const expForLevel = Math.floor(500 * Math.pow(1.3, additionalLevel - 1));
+                        totalExp += expForLevel;
+                    }
+                }
+                
+                // 第三阶段 (31级+): 挑战期
+                if (safeLevel > 30) {
+                    for (let i = 31; i <= safeLevel; i++) {
+                        const additionalLevel = i - 30;
+                        const expForLevel = Math.floor(2000 * Math.pow(1.25, additionalLevel - 1));
+                        totalExp += expForLevel;
+                    }
+                }
+                
+                return totalExp;
+            }
+
+            static getExperienceForNextLevel(level) {
+                const safeLevel = Math.max(1, Math.min(level, 100));
+                
+                if (safeLevel >= 100) {
+                    return 0;
+                }
+                
+                const currentLevelExp = this.getExperienceRequiredForLevel(safeLevel);
+                const nextLevelExp = this.getExperienceRequiredForLevel(safeLevel + 1);
+                
+                return nextLevelExp - currentLevelExp;
+            }
+
+            static getExperienceProgress(experience) {
+                const safeExperience = Math.max(0, experience);
+                const level = this.calculateLevel(safeExperience);
+                
+                const currentLevelRequiredExp = this.getExperienceRequiredForLevel(level);
+                const nextLevelRequiredExp = this.getExperienceRequiredForLevel(level + 1);
+                
+                const currentLevelExp = Math.max(0, safeExperience - currentLevelRequiredExp);
+                const nextLevelExp = nextLevelRequiredExp - currentLevelRequiredExp;
+                
+                let progress = 0;
+                if (nextLevelExp > 0) {
+                    progress = currentLevelExp / nextLevelExp;
+                } else {
+                    progress = 1;
+                }
+                
+                return {
+                    level,
+                    currentLevelExp: Math.max(0, currentLevelExp),
+                    nextLevelExp: Math.max(0, nextLevelExp),
+                    progress: Math.min(1, Math.max(0, progress))
+                };
+            }
+
+            static loadUserData() {
+                const defaultData = {
+                    level: 1,
+                    experience: 0,
+                    totalSessions: 0,
+                    todaySessions: 0,
+                    lastActiveDate: new Date().toDateString(),
+                    totalQuestions: 0,
+                    totalCorrect: 0,
+                    maxStreak: 0
+                };
+
+                try {
+                    const saved = localStorage.getItem('test_userData');
+                    if (!saved) return defaultData;
+                    
+                    const data = JSON.parse(saved);
+                    return { ...defaultData, ...data };
+                } catch (error) {
+                    console.error('Failed to load user data:', error);
+                    return defaultData;
+                }
+            }
+
+            static saveUserData(userData) {
+                try {
+                    localStorage.setItem('test_userData', JSON.stringify(userData));
+                    return true;
+                } catch (error) {
+                    console.error('Failed to save user data:', error);
+                    return false;
+                }
+            }
+        }
+        
+        function testGameDataManager() {
+            const resultsDiv = document.getElementById('gamedata-results');
+            resultsDiv.innerHTML = '<h3>GameDataManager测试结果</h3>';
+            
+            const tests = [
+                {
+                    name: 'loadUserData应该返回有效数据',
+                    test: () => {
+                        const userData = MockGameDataManager.loadUserData();
+                        return userData && typeof userData.level === 'number' && userData.level >= 1;
+                    }
+                },
+                {
+                    name: 'calculateLevel应该正确计算等级',
+                    test: () => {
+                        const level1 = MockGameDataManager.calculateLevel(0);
+                        const level2 = MockGameDataManager.calculateLevel(100);
+                        return level1 === 1 && level2 === 2;
+                    }
+                },
+                {
+                    name: 'getExperienceProgress应该返回有效进度',
+                    test: () => {
+                        const progress = MockGameDataManager.getExperienceProgress(150);
+                        return progress && 
+                               typeof progress.level === 'number' &&
+                               typeof progress.currentLevelExp === 'number' &&
+                               typeof progress.nextLevelExp === 'number' &&
+                               typeof progress.progress === 'number' &&
+                               progress.progress >= 0 && progress.progress <= 1;
+                    }
+                },
+                {
+                    name: '负数经验应该被安全处理',
+                    test: () => {
+                        const progress = MockGameDataManager.getExperienceProgress(-100);
+                        return progress.level === 1 && progress.currentLevelExp === 0;
+                    }
+                }
+            ];
+            
+            let passCount = 0;
+            tests.forEach(test => {
+                try {
+                    const passed = test.test();
+                    if (passed) passCount++;
+                    
+                    resultsDiv.innerHTML += `
+                        <div class="test-result ${passed ? 'pass' : 'fail'}">
+                            ${passed ? '✅' : '❌'} ${test.name}
+                        </div>
+                    `;
+                } catch (error) {
+                    resultsDiv.innerHTML += `
+                        <div class="test-result fail">
+                            ❌ ${test.name} - 错误: ${error.message}
+                        </div>
+                    `;
+                }
+            });
+            
+            resultsDiv.innerHTML += `
+                <div class="test-result info">
+                    <strong>测试总结：</strong> ${passCount}/${tests.length} 个测试通过
+                </div>
+            `;
+        }
+        
+        function testExperienceProgress() {
+            const resultsDiv = document.getElementById('progress-results');
+            resultsDiv.innerHTML = '<h3>经验进度测试结果</h3>';
+            
+            const testExperiences = [0, 50, 100, 150, 500, 1000, -100, null, undefined];
+            
+            testExperiences.forEach(exp => {
+                try {
+                    const progress = MockGameDataManager.getExperienceProgress(exp || 0);
+                    
+                    // 安全检查（模拟GameHUD中的逻辑）
+                    const safeProgress = {
+                        level: Math.max(1, progress.level || 1),
+                        currentLevelExp: Math.max(0, progress.currentLevelExp || 0),
+                        nextLevelExp: Math.max(0, progress.nextLevelExp || 0),
+                        progress: Math.min(1, Math.max(0, progress.progress || 0))
+                    };
+                    
+                    const isValid = safeProgress.level >= 1 && 
+                                   safeProgress.currentLevelExp >= 0 && 
+                                   safeProgress.nextLevelExp >= 0 && 
+                                   safeProgress.progress >= 0 && 
+                                   safeProgress.progress <= 1;
+                    
+                    resultsDiv.innerHTML += `
+                        <div class="test-result ${isValid ? 'pass' : 'fail'}">
+                            经验: ${exp} → 等级: ${safeProgress.level}, 进度: ${Math.round(safeProgress.progress * 100)}%
+                        </div>
+                    `;
+                } catch (error) {
+                    resultsDiv.innerHTML += `
+                        <div class="test-result fail">
+                            经验: ${exp} → 错误: ${error.message}
+                        </div>
+                    `;
+                }
+            });
+        }
+        
+        function simulateHUD() {
+            clearMockHUD(); // 先清除现有的
+            
+            const userData = MockGameDataManager.loadUserData();
+            const progress = MockGameDataManager.getExperienceProgress(userData.experience);
+            
+            // 安全检查
+            const safeProgress = {
+                level: Math.max(1, progress.level || 1),
+                currentLevelExp: Math.max(0, progress.currentLevelExp || 0),
+                nextLevelExp: Math.max(0, progress.nextLevelExp || 0),
+                progress: Math.min(1, Math.max(0, progress.progress || 0))
+            };
+            
+            const mockHUD = document.createElement('div');
+            mockHUD.className = 'mock-hud';
+            mockHUD.id = 'mock-hud';
+            mockHUD.innerHTML = `
+                <div class="level-display">
+                    <div class="level-icon">⭐</div>
+                    <div>
+                        <div>等级 ${safeProgress.level}</div>
+                        <div style="font-size: 0.8rem; color: #64748b;">
+                            ${safeProgress.currentLevelExp}/${safeProgress.nextLevelExp} 经验
+                        </div>
+                    </div>
+                </div>
+                <div class="exp-bar">
+                    <div class="exp-fill" style="width: ${safeProgress.progress * 100}%"></div>
+                </div>
+            `;
+            
+            document.body.appendChild(mockHUD);
+            
+            const resultsDiv = document.getElementById('hud-results');
+            resultsDiv.innerHTML = `
+                <div class="test-result pass">
+                    ✅ 模拟HUD已显示在左上角<br>
+                    等级: ${safeProgress.level}<br>
+                    经验: ${safeProgress.currentLevelExp}/${safeProgress.nextLevelExp}<br>
+                    进度: ${Math.round(safeProgress.progress * 100)}%
+                </div>
+            `;
+        }
+        
+        function clearMockHUD() {
+            const existingHUD = document.getElementById('mock-hud');
+            if (existingHUD) {
+                existingHUD.remove();
+            }
+        }
+        
+        function simulateDataUpdate() {
+            const resultsDiv = document.getElementById('update-results');
+            resultsDiv.innerHTML = '<h3>数据更新模拟</h3>';
+            
+            // 模拟获得经验
+            const userData = MockGameDataManager.loadUserData();
+            const oldLevel = userData.level;
+            
+            // 添加一些经验
+            userData.experience += Math.floor(Math.random() * 200) + 50;
+            userData.level = MockGameDataManager.calculateLevel(userData.experience);
+            
+            // 保存数据
+            const saveSuccess = MockGameDataManager.saveUserData(userData);
+            
+            const newProgress = MockGameDataManager.getExperienceProgress(userData.experience);
+            
+            resultsDiv.innerHTML += `
+                <div class="test-result ${saveSuccess ? 'pass' : 'fail'}">
+                    ${saveSuccess ? '✅' : '❌'} 数据保存: ${saveSuccess ? '成功' : '失败'}
+                </div>
+                <div class="test-result info">
+                    等级变化: ${oldLevel} → ${userData.level}<br>
+                    当前经验: ${userData.experience}<br>
+                    当前进度: ${Math.round(newProgress.progress * 100)}%
+                </div>
+            `;
+            
+            // 更新模拟HUD（如果存在）
+            const mockHUD = document.getElementById('mock-hud');
+            if (mockHUD) {
+                simulateHUD();
+                resultsDiv.innerHTML += `
+                    <div class="test-result info">
+                        🔄 模拟HUD已更新
+                    </div>
+                `;
+            }
+        }
+        
+        // 页面加载时运行基本测试
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('GameHUD修复测试页面已加载');
+        });
+    </script>
+</body>
+</html>

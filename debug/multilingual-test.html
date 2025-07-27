@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多语言听写测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .language-selector {
+            margin: 10px 0;
+        }
+        select {
+            padding: 5px 10px;
+            font-size: 16px;
+        }
+        button {
+            padding: 8px 15px;
+            margin: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            background: #f5f5f5;
+        }
+        button:hover {
+            background: #e5e5e5;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 3px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <h1>多语言听写功能测试</h1>
+    
+    <div class="test-section">
+        <h2>语言选择测试</h2>
+        <div class="language-selector">
+            <label for="languageSelect">选择听写语言：</label>
+            <select id="languageSelect">
+                <option value="fr-FR">🇫🇷 Français</option>
+                <option value="en-US">🇺🇸 English</option>
+                <option value="de-DE">🇩🇪 Deutsch</option>
+                <option value="es-ES">🇪🇸 Español</option>
+                <option value="it-IT">🇮🇹 Italiano</option>
+                <option value="pt-PT">🇵🇹 Português</option>
+                <option value="zh-CN">🇨🇳 中文</option>
+                <option value="ja-JP">🇯🇵 日本語</option>
+                <option value="ko-KR">🇰🇷 한국어</option>
+                <option value="ar-SA">🇸🇦 العربية</option>
+                <option value="ru-RU">🇷🇺 Русский</option>
+                <option value="nl-NL">🇳🇱 Nederlands</option>
+                <option value="sv-SE">🇸🇪 Svenska</option>
+                <option value="no-NO">🇳🇴 Norsk</option>
+            </select>
+        </div>
+        <button onclick="testVoiceSupport()">测试语音支持</button>
+        <div id="voiceSupportResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>数字听写测试</h2>
+        <div>
+            <label>测试数字：</label>
+            <input type="number" id="testNumber" value="23" min="0" max="999">
+            <button onclick="testNumberDictation()">播放数字</button>
+        </div>
+        <div id="numberTestResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>数学运算听写测试</h2>
+        <div>
+            <label>第一个数：</label>
+            <input type="number" id="operand1" value="15" min="0" max="99">
+            <label>运算符：</label>
+            <select id="operator">
+                <option value="+">+</option>
+                <option value="-">-</option>
+                <option value="×">×</option>
+                <option value="÷">÷</option>
+            </select>
+            <label>第二个数：</label>
+            <input type="number" id="operand2" value="8" min="0" max="99">
+            <button onclick="testMathDictation()">播放运算</button>
+        </div>
+        <div id="mathTestResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>可用语音列表</h2>
+        <button onclick="listAvailableVoices()">列出所有可用语音</button>
+        <div id="voicesList"></div>
+    </div>
+
+    <script>
+        // 运算符翻译映射
+        const operatorsByLanguage = {
+            'fr-FR': { '+': 'plus', '-': 'moins', '×': 'fois', '÷': 'divisé par' },
+            'en-US': { '+': 'plus', '-': 'minus', '×': 'times', '÷': 'divided by' },
+            'de-DE': { '+': 'plus', '-': 'minus', '×': 'mal', '÷': 'geteilt durch' },
+            'es-ES': { '+': 'más', '-': 'menos', '×': 'por', '÷': 'dividido por' },
+            'it-IT': { '+': 'più', '-': 'meno', '×': 'per', '÷': 'diviso per' },
+            'pt-PT': { '+': 'mais', '-': 'menos', '×': 'vezes', '÷': 'dividido por' },
+            'zh-CN': { '+': '加', '-': '减', '×': '乘', '÷': '除以' },
+            'ja-JP': { '+': 'たす', '-': 'ひく', '×': 'かける', '÷': 'わる' },
+            'ko-KR': { '+': '더하기', '-': '빼기', '×': '곱하기', '÷': '나누기' },
+            'ar-SA': { '+': 'زائد', '-': 'ناقص', '×': 'ضرب', '÷': 'قسمة على' },
+            'ru-RU': { '+': 'плюс', '-': 'минус', '×': 'умножить на', '÷': 'разделить на' },
+            'nl-NL': { '+': 'plus', '-': 'min', '×': 'keer', '÷': 'gedeeld door' },
+            'sv-SE': { '+': 'plus', '-': 'minus', '×': 'gånger', '÷': 'delat med' },
+            'no-NO': { '+': 'pluss', '-': 'minus', '×': 'ganger', '÷': 'delt på' }
+        };
+
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="test-result ${type}">${message}</div>`;
+        }
+
+        function getCurrentLanguage() {
+            return document.getElementById('languageSelect').value;
+        }
+
+        function getBestVoiceForLanguage(language) {
+            if (!window.speechSynthesis) return null;
+            
+            const voices = window.speechSynthesis.getVoices();
+            
+            // 首先尝试精确匹配
+            let bestVoice = voices.find(voice => 
+                voice.lang.toLowerCase() === language.toLowerCase()
+            );
+
+            // 如果没有精确匹配，尝试语言代码匹配
+            if (!bestVoice) {
+                const langCode = language.split('-')[0].toLowerCase();
+                bestVoice = voices.find(voice => 
+                    voice.lang.toLowerCase().startsWith(langCode)
+                );
+            }
+
+            return bestVoice;
+        }
+
+        function testVoiceSupport() {
+            const language = getCurrentLanguage();
+            
+            if (!window.speechSynthesis) {
+                showResult('voiceSupportResult', '浏览器不支持语音合成', 'error');
+                return;
+            }
+
+            const voices = window.speechSynthesis.getVoices();
+            if (voices.length === 0) {
+                showResult('voiceSupportResult', '正在加载语音列表，请稍后重试...', 'info');
+                return;
+            }
+
+            const bestVoice = getBestVoiceForLanguage(language);
+            
+            if (bestVoice) {
+                showResult('voiceSupportResult', 
+                    `✅ 找到支持的语音: ${bestVoice.name} (${bestVoice.lang})${bestVoice.localService ? ' [本地]' : ' [在线]'}`, 
+                    'success'
+                );
+            } else {
+                showResult('voiceSupportResult', 
+                    `❌ 未找到 ${language} 的支持语音`, 
+                    'error'
+                );
+            }
+        }
+
+        function testNumberDictation() {
+            const language = getCurrentLanguage();
+            const number = document.getElementById('testNumber').value;
+            
+            if (!window.speechSynthesis) {
+                showResult('numberTestResult', '浏览器不支持语音合成', 'error');
+                return;
+            }
+
+            const utterance = new SpeechSynthesisUtterance(number);
+            utterance.lang = language;
+            
+            const bestVoice = getBestVoiceForLanguage(language);
+            if (bestVoice) {
+                utterance.voice = bestVoice;
+            }
+
+            utterance.onstart = () => {
+                showResult('numberTestResult', `🔊 正在播放数字 "${number}" (${language})`, 'info');
+            };
+
+            utterance.onend = () => {
+                showResult('numberTestResult', `✅ 数字播放完成`, 'success');
+            };
+
+            utterance.onerror = (event) => {
+                showResult('numberTestResult', `❌ 播放失败: ${event.error}`, 'error');
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function testMathDictation() {
+            const language = getCurrentLanguage();
+            const operand1 = document.getElementById('operand1').value;
+            const operator = document.getElementById('operator').value;
+            const operand2 = document.getElementById('operand2').value;
+            
+            if (!window.speechSynthesis) {
+                showResult('mathTestResult', '浏览器不支持语音合成', 'error');
+                return;
+            }
+
+            const operators = operatorsByLanguage[language] || operatorsByLanguage['en-US'];
+            const operatorText = operators[operator];
+            const mathExpression = `${operand1} ${operatorText} ${operand2}`;
+
+            const utterance = new SpeechSynthesisUtterance(mathExpression);
+            utterance.lang = language;
+            
+            const bestVoice = getBestVoiceForLanguage(language);
+            if (bestVoice) {
+                utterance.voice = bestVoice;
+            }
+
+            utterance.onstart = () => {
+                showResult('mathTestResult', `🔊 正在播放运算 "${mathExpression}" (${language})`, 'info');
+            };
+
+            utterance.onend = () => {
+                showResult('mathTestResult', `✅ 运算播放完成`, 'success');
+            };
+
+            utterance.onerror = (event) => {
+                showResult('mathTestResult', `❌ 播放失败: ${event.error}`, 'error');
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function listAvailableVoices() {
+            if (!window.speechSynthesis) {
+                showResult('voicesList', '浏览器不支持语音合成', 'error');
+                return;
+            }
+
+            const voices = window.speechSynthesis.getVoices();
+            
+            if (voices.length === 0) {
+                showResult('voicesList', '正在加载语音列表，请稍后重试...', 'info');
+                return;
+            }
+
+            let voicesHtml = '<h3>可用语音列表：</h3><ul>';
+            voices.forEach(voice => {
+                voicesHtml += `<li><strong>${voice.name}</strong> (${voice.lang}) ${voice.localService ? '[本地]' : '[在线]'}</li>`;
+            });
+            voicesHtml += '</ul>';
+
+            document.getElementById('voicesList').innerHTML = voicesHtml;
+        }
+
+        // 页面加载时初始化
+        window.addEventListener('load', () => {
+            // 等待语音列表加载
+            setTimeout(() => {
+                testVoiceSupport();
+                listAvailableVoices();
+            }, 1000);
+        });
+
+        // 语音列表变化时更新
+        window.speechSynthesis.addEventListener('voiceschanged', () => {
+            testVoiceSupport();
+            listAvailableVoices();
+        });
+    </script>
+</body>
+</html>

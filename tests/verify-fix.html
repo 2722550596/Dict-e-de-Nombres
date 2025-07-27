@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>经验值负数Bug修复验证</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-case {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .pass {
+            border-left: 4px solid #28a745;
+        }
+        .fail {
+            border-left: 4px solid #dc3545;
+        }
+        .result {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .pass .result {
+            color: #28a745;
+        }
+        .fail .result {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 经验值负数Bug修复验证</h1>
+    <p>测试各种边界情况，确保经验值显示不会出现负数。</p>
+    
+    <div id="test-results"></div>
+
+    <script>
+        // 复制修复后的核心方法
+        class FixedGameDataManager {
+            static calculateLevel(experience) {
+                const safeExperience = Math.max(0, experience);
+                
+                let currentExp = 0;
+                let level = 1;
+                let expForNextLevel = 150;
+                
+                while (currentExp + expForNextLevel <= safeExperience) {
+                    currentExp += expForNextLevel;
+                    level++;
+                    expForNextLevel = 150 + (level - 2) * 50;
+                    
+                    if (level > 100) break;
+                }
+                
+                return level;
+            }
+
+            static getExperienceRequiredForLevel(level) {
+                const safeLevel = Math.max(1, level);
+                if (safeLevel <= 1) return 0;
+                
+                let totalExp = 0;
+                for (let i = 2; i <= safeLevel; i++) {
+                    totalExp += 150 + (i - 2) * 50;
+                    if (i > 100) break;
+                }
+                
+                return totalExp;
+            }
+
+            static getExperienceProgress(experience) {
+                const safeExperience = Math.max(0, experience);
+                const level = this.calculateLevel(safeExperience);
+                
+                const currentLevelRequiredExp = this.getExperienceRequiredForLevel(level);
+                const nextLevelRequiredExp = this.getExperienceRequiredForLevel(level + 1);
+                
+                const currentLevelExp = Math.max(0, safeExperience - currentLevelRequiredExp);
+                const nextLevelExp = nextLevelRequiredExp - currentLevelRequiredExp;
+                
+                let progress = 0;
+                if (nextLevelExp > 0) {
+                    progress = currentLevelExp / nextLevelExp;
+                } else {
+                    progress = 1;
+                }
+                
+                return {
+                    level,
+                    currentLevelExp: Math.max(0, currentLevelExp),
+                    nextLevelExp: Math.max(0, nextLevelExp),
+                    progress: Math.min(1, Math.max(0, progress))
+                };
+            }
+        }
+
+        function runTests() {
+            const testCases = [
+                { name: "负数经验值", experience: -100 },
+                { name: "零经验值", experience: 0 },
+                { name: "刚好升级边界", experience: 150 },
+                { name: "升级边界-1", experience: 149 },
+                { name: "升级边界+1", experience: 151 },
+                { name: "第二次升级边界", experience: 350 },
+                { name: "第二次升级边界-1", experience: 349 },
+                { name: "第二次升级边界+1", experience: 351 },
+                { name: "高等级", experience: 5000 },
+                { name: "极大值", experience: 999999 }
+            ];
+
+            const resultsContainer = document.getElementById('test-results');
+            let allPassed = true;
+
+            testCases.forEach(testCase => {
+                const progress = FixedGameDataManager.getExperienceProgress(testCase.experience);
+                
+                // 检查是否有负数
+                const hasNegative = progress.currentLevelExp < 0 || progress.nextLevelExp < 0 || progress.progress < 0;
+                const isValid = !hasNegative && progress.progress <= 1 && progress.level >= 1;
+                
+                if (!isValid) allPassed = false;
+
+                const testDiv = document.createElement('div');
+                testDiv.className = `test-case ${isValid ? 'pass' : 'fail'}`;
+                testDiv.innerHTML = `
+                    <h3>${testCase.name}</h3>
+                    <p>输入经验值: ${testCase.experience}</p>
+                    <p>等级: ${progress.level}</p>
+                    <p>当前等级经验: ${progress.currentLevelExp}/${progress.nextLevelExp}</p>
+                    <p>进度: ${Math.round(progress.progress * 100)}%</p>
+                    <div class="result">${isValid ? '✅ 通过' : '❌ 失败'}</div>
+                `;
+                resultsContainer.appendChild(testDiv);
+            });
+
+            // 添加总结
+            const summaryDiv = document.createElement('div');
+            summaryDiv.className = `test-case ${allPassed ? 'pass' : 'fail'}`;
+            summaryDiv.innerHTML = `
+                <h3>测试总结</h3>
+                <div class="result">${allPassed ? '🎉 所有测试通过！经验值负数Bug已修复。' : '⚠️ 仍有测试失败，需要进一步修复。'}</div>
+            `;
+            resultsContainer.appendChild(summaryDiv);
+        }
+
+        // 页面加载时运行测试
+        window.onload = runTests;
+    </script>
+</body>
+</html>

@@ -1,0 +1,540 @@
+/* 奖励弹窗样式 */
+.reward-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1500;
+  opacity: 0;
+  transition: opacity 0.4s ease-out;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
+}
+
+.reward-modal-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.reward-modal {
+  /* 方案C：蓝色渐变背景 */
+  background: linear-gradient(160deg, #3b82f6 0%, #4f46e5 100%);
+  color: white;
+  text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  border: none;
+  border-radius: 24px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+  min-width: 360px;
+  max-width: 420px;
+  height: 500px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translate(0, 30px) scale(0.9);
+  opacity: 0;
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow-y: auto;
+  /* 隐形滚动条 - 支持所有浏览器 */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  /* 防止闪屏 - 使用pointer-events而不是visibility */
+  pointer-events: none;
+}
+
+.reward-modal::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+.reward-modal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #06b6d4, #10b981);
+  background-size: 300% 100%;
+  animation: gradientShift 3s ease-in-out infinite;
+}
+
+.reward-modal.visible {
+  transform: translate(0, 0) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 升级视图 */
+.level-up-view {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 24px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.6s ease-out 0.2s;
+}
+
+.reward-modal.visible .level-up-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 确保升级标题内的所有元素都是白色 */
+.level-up-view h2,
+.level-up-view .level-up-title,
+.level-up-view .level-up-title * {
+  color: white !important;
+}
+
+.level-up-title {
+  font-size: 3rem;
+  font-weight: 900;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  margin: 0;
+  letter-spacing: -0.02em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  color: white !important;
+}
+
+.level-number {
+  color: #fde047;
+  background: linear-gradient(
+    90deg,
+    #fde047 0%,
+    #ffffff 50%,
+    #fde047 100%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.2);
+  animation: sweep-light 3s ease-in-out infinite;
+  white-space: nowrap;
+}
+
+/* 只影响RewardModal中的level-text */
+.reward-modal .level-text {
+  /* 确保与 .session-title 完全一致的样式 */
+  color: white !important;
+  font-size: 1.875rem !important;
+  font-weight: 900 !important;
+  margin: 0 !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+  /* 覆盖任何可能的继承样式 */
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  line-height: 1 !important;
+}
+
+/* 普通视图 */
+.normal-view {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 24px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.6s ease-out 0.2s;
+}
+
+.reward-modal.visible .normal-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.session-title {
+  font-size: 1.875rem;
+  font-weight: 900;
+  margin: 0 0 8px 0;
+  color: white;
+}
+
+.session-subtitle {
+  font-size: 0.875rem;
+  color: #bfdbfe;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* 核心经验显示 */
+.experience-display {
+  text-align: center;
+  margin: 24px 0;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.6s ease-out 0.4s;
+}
+
+.reward-modal.visible .experience-display {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.experience-value {
+  font-size: 6.5rem;
+  font-weight: 900;
+  color: #fde047;
+  line-height: 1;
+  margin-bottom: -8px;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.base-exp {
+  color: #fde047;
+}
+
+.streak-plus {
+  font-size: 2.25rem;
+  color: #fde047;
+  font-weight: 600;
+}
+
+.streak-bonus {
+  font-size: 2.25rem;
+  color: #fbbf24;
+  display: flex;
+  align-items: baseline;
+  gap: 0.125rem;
+}
+
+.lightning {
+  font-size: 1.5rem;
+  animation: lightning-pulse 1.5s ease-in-out infinite;
+}
+
+.experience-label {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fef3c7;
+  margin-top: -8px;
+}
+
+/* 次要数据网格 */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  width: 100%;
+  margin: 24px 0;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.6s ease-out 0.5s;
+}
+
+.reward-modal.visible .stats-grid {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  font-weight: 700;
+  opacity: 0.8;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+}
+
+
+
+/* 经验条和底部 */
+.reward-footer {
+  margin-top: auto;
+  width: 100%;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.6s ease-out 0.6s;
+}
+
+.reward-modal.visible .reward-footer {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.xp-bar-container {
+  margin-bottom: 16px;
+}
+
+.xp-bar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  height: 12px;
+  overflow: hidden;
+}
+
+.xp-bar-fill {
+  background: linear-gradient(90deg, #fde047, #facc15);
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.5s ease;
+}
+
+.xp-text {
+  font-size: 0.75rem;
+  text-align: center;
+  margin-top: 4px;
+  font-weight: 600;
+  opacity: 0.8;
+  color: white;
+}
+
+/* 确认按钮 */
+.reward-confirm-btn {
+  background: white;
+  color: #3b82f6;
+  border: none;
+  border-radius: 24px;
+  padding: 12px 32px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.reward-confirm-btn:hover {
+  background: #f0f9ff;
+  transform: scale(1.05);
+}
+
+/* 动画定义 */
+@keyframes sweep-light {
+  0% {
+    background-position: -200% 0;
+  }
+  50% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes lightning-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes bonusGlow {
+  0%, 100% {
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+  }
+  50% {
+    box-shadow: 0 8px 20px rgba(251, 191, 36, 0.5);
+  }
+}
+
+@keyframes perfectScoreSlideIn {
+  0% { transform: translateY(30px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes rotateIn {
+  0% { transform: rotate(-180deg) scale(0); opacity: 0; }
+  100% { transform: rotate(0deg) scale(1); opacity: 1; }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .reward-modal {
+    margin: 20px;
+    min-width: auto;
+    max-width: calc(100vw - 40px);
+    height: auto;
+    max-height: calc(100vh - 40px);
+    padding: 20px;
+  }
+
+  .experience-value {
+    font-size: 5.5rem;
+  }
+
+  .level-up-title {
+    font-size: 2.25rem;
+  }
+
+  .level-number {
+    font-size: 1em;
+  }
+
+  .reward-modal .level-text {
+    /* 768px媒体查询：与 .session-title 保持一致 */
+    font-size: 1.5rem !important;
+  }
+
+  .streak-bonus {
+    font-size: 1.875rem;
+  }
+
+  .streak-plus {
+    font-size: 1.875rem;
+  }
+
+  .lightning {
+    font-size: 1.25rem;
+  }
+
+  .session-title {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .reward-modal {
+    margin: 16px;
+    min-width: auto;
+    max-width: calc(100vw - 32px);
+    height: auto;
+    max-height: calc(100vh - 32px);
+    padding: 16px;
+  }
+
+  .experience-value {
+    font-size: 4.5rem;
+  }
+
+  .experience-label {
+    font-size: 1rem;
+  }
+
+  .level-up-title {
+    font-size: 1.875rem;
+  }
+
+  .level-number {
+    font-size: 1em;
+  }
+
+  .reward-modal .level-text {
+    /* 480px媒体查询：与 .session-title 保持一致 */
+    font-size: 1.25rem !important;
+  }
+
+  .streak-bonus {
+    font-size: 1.5rem;
+  }
+
+  .streak-plus {
+    font-size: 1.5rem;
+  }
+
+  .lightning {
+    font-size: 1rem;
+  }
+
+  .session-title {
+    font-size: 1.25rem;
+  }
+
+  .session-subtitle {
+    font-size: 0.75rem;
+  }
+
+  .stats-grid {
+    gap: 12px;
+  }
+
+  .stat-card {
+    padding: 8px;
+  }
+
+  .stat-value {
+    font-size: 1.25rem;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+  }
+
+  .reward-confirm-btn {
+    padding: 10px 24px;
+    font-size: 1rem;
+  }
+}
+
+@media (max-height: 600px) {
+  .reward-modal {
+    height: auto;
+    max-height: calc(100vh - 20px);
+    margin: 10px;
+    padding: 16px;
+  }
+
+  .experience-display {
+    margin: 16px 0;
+  }
+
+  .experience-value {
+    font-size: 4.5rem;
+  }
+
+  .stats-grid {
+    margin: 16px 0;
+  }
+}
+
+/* 淡出动画 */
+.reward-modal-overlay:not(.visible) {
+  animation: fadeOut 0.4s ease-out forwards;
+}
+
+.reward-modal-overlay:not(.visible) .reward-modal {
+  animation: slideOut 0.4s ease-out forwards;
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translate(0, 20px) scale(0.9);
+    opacity: 0;
+  }
+}

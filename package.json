@@ -1,0 +1,56 @@
+{
+  "name": "dictée-de-nombres",
+  "homepage": "https://2722550596.github.io/Dict-e-de-Nombres",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "NODE_ENV=production vite build",
+    "build:github": "NODE_ENV=production DEPLOY_TARGET=github vite build",
+    "build:cloudflare": "NODE_ENV=production DEPLOY_TARGET=cloudflare vite build",
+    "build:dev": "NODE_ENV=development vite build",
+    "deploy:github": "npm run build:github && gh-pages -d dist",
+    "preview": "vite preview",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --ext ts,tsx --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "type-check": "tsc --noEmit",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "@types/howler": "^2.2.12",
+    "howler": "^2.2.4",
+    "lucide-react": "^0.526.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@typescript-eslint/eslint-plugin": "^8.38.0",
+    "@typescript-eslint/parser": "^8.38.0",
+    "eslint": "^9.32.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.3",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "gh-pages": "^6.3.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
+    "prettier": "^3.6.2",
+    "typescript": "~5.7.2",
+    "vite": "^6.2.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{js,jsx,json,css,md}": [
+      "prettier --write"
+    ]
+  }
+}

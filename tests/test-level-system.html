@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新等级系统测试验证</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: #f8fafc;
+        }
+        
+        .test-section h2 {
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+        
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        
+        .test-result.pass {
+            background: #c6f6d5;
+            border-left: 4px solid #38a169;
+        }
+        
+        .test-result.fail {
+            background: #fed7d7;
+            border-left: 4px solid #e53e3e;
+        }
+        
+        .test-result.info {
+            background: #bee3f8;
+            border-left: 4px solid #3182ce;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        
+        .comparison-table th {
+            background: #edf2f7;
+            font-weight: bold;
+        }
+        
+        .comparison-table tr:nth-child(even) {
+            background: #f7fafc;
+        }
+        
+        .phase-1 { color: #38a169; font-weight: bold; }
+        .phase-2 { color: #3182ce; font-weight: bold; }
+        .phase-3 { color: #e53e3e; font-weight: bold; }
+        
+        button {
+            background: #4299e1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #3182ce;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 新等级系统测试验证</h1>
+        
+        <div class="test-section">
+            <h2>📊 等级曲线对比分析</h2>
+            <button onclick="runComparisonTest()">运行对比测试</button>
+            <div id="comparison-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🔍 核心功能测试</h2>
+            <button onclick="runCoreTests()">运行核心测试</button>
+            <div id="core-test-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🏆 里程碑系统测试</h2>
+            <button onclick="runMilestoneTests()">运行里程碑测试</button>
+            <div id="milestone-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>⚡ 性能测试</h2>
+            <button onclick="runPerformanceTests()">运行性能测试</button>
+            <div id="performance-results"></div>
+        </div>
+    </div>
+
+    <script>
+        // 新等级系统实现
+        class NewLevelSystem {
+            static experienceCache = new Map();
+            static maxLevel = 100;
+            
+            static getExperienceRequiredForLevel(level) {
+                const safeLevel = Math.max(1, Math.min(level, this.maxLevel));
+                
+                if (safeLevel <= 1) return 0;
+                
+                if (this.experienceCache.has(safeLevel)) {
+                    return this.experienceCache.get(safeLevel);
+                }
+                
+                let totalExp = 0;
+                
+                // 第一阶段 (2-10级): 快速升级期
+                for (let i = 2; i <= Math.min(safeLevel, 10); i++) {
+                    const expForLevel = Math.floor(100 * Math.pow(1.4, i - 2));
+                    totalExp += expForLevel;
+                }
+                
+                // 第二阶段 (11-30级): 稳定增长期
+                if (safeLevel > 10) {
+                    for (let i = 11; i <= Math.min(safeLevel, 30); i++) {
+                        const additionalLevel = i - 10;
+                        const expForLevel = Math.floor(500 * Math.pow(1.3, additionalLevel - 1));
+                        totalExp += expForLevel;
+                    }
+                }
+                
+                // 第三阶段 (31级+): 挑战期
+                if (safeLevel > 30) {
+                    for (let i = 31; i <= safeLevel; i++) {
+                        const additionalLevel = i - 30;
+                        const expForLevel = Math.floor(2000 * Math.pow(1.25, additionalLevel - 1));
+                        totalExp += expForLevel;
+                    }
+                }
+                
+                this.experienceCache.set(safeLevel, totalExp);
+                return totalExp;
+            }
+            
+            static getExperienceForNextLevel(level) {
+                const safeLevel = Math.max(1, Math.min(level, this.maxLevel));
+                
+                if (safeLevel >= this.maxLevel) return 0;
+                
+                const currentLevelExp = this.getExperienceRequiredForLevel(safeLevel);
+                const nextLevelExp = this.getExperienceRequiredForLevel(safeLevel + 1);
+                
+                return nextLevelExp - currentLevelExp;
+            }
+            
+            static calculateLevel(experience) {
+                const safeExperience = Math.max(0, experience);
+                
+                if (safeExperience === 0) return 1;
+                
+                // 二分查找优化
+                let left = 1;
+                let right = this.maxLevel;
+                let result = 1;
+                
+                while (left <= right) {
+                    const mid = Math.floor((left + right) / 2);
+                    const requiredExp = this.getExperienceRequiredForLevel(mid);
+                    
+                    if (requiredExp <= safeExperience) {
+                        result = mid;
+                        left = mid + 1;
+                    } else {
+                        right = mid - 1;
+                    }
+                }
+                
+                return result;
+            }
+            
+            static getExperienceProgress(experience) {
+                const safeExperience = Math.max(0, experience);
+                const level = this.calculateLevel(safeExperience);
+                
+                const currentLevelRequiredExp = this.getExperienceRequiredForLevel(level);
+                const nextLevelRequiredExp = this.getExperienceRequiredForLevel(level + 1);
+                
+                const currentLevelExp = Math.max(0, safeExperience - currentLevelRequiredExp);
+                const nextLevelExp = nextLevelRequiredExp - currentLevelRequiredExp;
+                
+                let progress = 0;
+                if (nextLevelExp > 0) {
+                    progress = currentLevelExp / nextLevelExp;
+                } else {
+                    progress = 1;
+                }
+                
+                return {
+                    level,
+                    currentLevelExp: Math.max(0, currentLevelExp),
+                    nextLevelExp: Math.max(0, nextLevelExp),
+                    progress: Math.min(1, Math.max(0, progress))
+                };
+            }
+            
+            static clearCache() {
+                this.experienceCache.clear();
+            }
+        }
+        
+        // 旧等级系统（用于对比）
+        class OldLevelSystem {
+            static calculateLevel(experience) {
+                const safeExperience = Math.max(0, experience);
+                
+                let currentExp = 0;
+                let level = 1;
+                let expForNextLevel = 150;
+                
+                while (currentExp + expForNextLevel <= safeExperience) {
+                    currentExp += expForNextLevel;
+                    level++;
+                    expForNextLevel = 150 + (level - 2) * 50;
+                    
+                    if (level > 100) break;
+                }
+                
+                return level;
+            }
+            
+            static getExperienceRequiredForLevel(level) {
+                const safeLevel = Math.max(1, level);
+                
+                if (safeLevel <= 1) return 0;
+                
+                let totalExp = 0;
+                for (let i = 2; i <= safeLevel; i++) {
+                    totalExp += 150 + (i - 2) * 50;
+                    if (i > 100) break;
+                }
+                
+                return totalExp;
+            }
+        }
+        
+        // 里程碑定义
+        const LEVEL_MILESTONES = [
+            { level: 5, title: "初学者", description: "完成基础练习" },
+            { level: 10, title: "练习者", description: "建立学习习惯" },
+            { level: 20, title: "熟练者", description: "掌握核心技能" },
+            { level: 30, title: "专家", description: "达到高级水平" },
+            { level: 50, title: "大师", description: "成为数字听写大师" }
+        ];
+        
+        function runComparisonTest() {
+            const resultsDiv = document.getElementById('comparison-results');
+            resultsDiv.innerHTML = '<h3>等级曲线对比</h3>';
+            
+            const comparisonData = [];
+            const testLevels = [1, 2, 3, 4, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
+            
+            testLevels.forEach(level => {
+                const oldExp = OldLevelSystem.getExperienceRequiredForLevel(level);
+                const newExp = NewLevelSystem.getExperienceRequiredForLevel(level);
+                const oldNextLevel = level === 1 ? 150 : OldLevelSystem.getExperienceRequiredForLevel(level + 1) - oldExp;
+                const newNextLevel = NewLevelSystem.getExperienceForNextLevel(level);
+                
+                let phase = '';
+                let phaseClass = '';
+                if (level <= 10) {
+                    phase = '快速升级期';
+                    phaseClass = 'phase-1';
+                } else if (level <= 30) {
+                    phase = '稳定增长期';
+                    phaseClass = 'phase-2';
+                } else {
+                    phase = '挑战期';
+                    phaseClass = 'phase-3';
+                }
+                
+                comparisonData.push({
+                    level,
+                    oldExp,
+                    newExp,
+                    oldNextLevel,
+                    newNextLevel,
+                    phase,
+                    phaseClass,
+                    ratio: newExp / Math.max(oldExp, 1)
+                });
+            });
+            
+            let tableHTML = `
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>等级</th>
+                            <th>阶段</th>
+                            <th>旧系统总经验</th>
+                            <th>新系统总经验</th>
+                            <th>旧系统升级需求</th>
+                            <th>新系统升级需求</th>
+                            <th>难度比例</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            comparisonData.forEach(data => {
+                const ratioColor = data.ratio > 2 ? '#e53e3e' : data.ratio > 1.5 ? '#d69e2e' : '#38a169';
+                tableHTML += `
+                    <tr>
+                        <td>${data.level}</td>
+                        <td class="${data.phaseClass}">${data.phase}</td>
+                        <td>${data.oldExp.toLocaleString()}</td>
+                        <td>${data.newExp.toLocaleString()}</td>
+                        <td>${data.oldNextLevel.toLocaleString()}</td>
+                        <td>${data.newNextLevel.toLocaleString()}</td>
+                        <td style="color: ${ratioColor}; font-weight: bold;">${data.ratio.toFixed(2)}x</td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += '</tbody></table>';
+            resultsDiv.innerHTML += tableHTML;
+            
+            // 添加分析总结
+            const avgRatio = comparisonData.reduce((sum, data) => sum + data.ratio, 0) / comparisonData.length;
+            resultsDiv.innerHTML += `
+                <div class="test-result info">
+                    <strong>分析总结：</strong><br>
+                    • 平均难度提升：${avgRatio.toFixed(2)}倍<br>
+                    • 前期（1-10级）：相对容易，保持用户参与度<br>
+                    • 中期（11-30级）：稳定增长，建立学习习惯<br>
+                    • 后期（31级+）：显著挑战，提供长期目标
+                </div>
+            `;
+        }
+        
+        function runCoreTests() {
+            const resultsDiv = document.getElementById('core-test-results');
+            resultsDiv.innerHTML = '<h3>核心功能测试结果</h3>';
+            
+            const tests = [
+                {
+                    name: '等级1应该需要0经验',
+                    test: () => NewLevelSystem.getExperienceRequiredForLevel(1) === 0,
+                    expected: 0,
+                    actual: NewLevelSystem.getExperienceRequiredForLevel(1)
+                },
+                {
+                    name: '等级2应该需要100经验',
+                    test: () => NewLevelSystem.getExperienceRequiredForLevel(2) === 100,
+                    expected: 100,
+                    actual: NewLevelSystem.getExperienceRequiredForLevel(2)
+                },
+                {
+                    name: '100经验应该是等级2',
+                    test: () => NewLevelSystem.calculateLevel(100) === 2,
+                    expected: 2,
+                    actual: NewLevelSystem.calculateLevel(100)
+                },
+                {
+                    name: '99经验应该是等级1',
+                    test: () => NewLevelSystem.calculateLevel(99) === 1,
+                    expected: 1,
+                    actual: NewLevelSystem.calculateLevel(99)
+                },
+                {
+                    name: '负数经验应该是等级1',
+                    test: () => NewLevelSystem.calculateLevel(-100) === 1,
+                    expected: 1,
+                    actual: NewLevelSystem.calculateLevel(-100)
+                },
+                {
+                    name: '等级进度计算应该正确',
+                    test: () => {
+                        const progress = NewLevelSystem.getExperienceProgress(150);
+                        return progress.level === 2 && progress.currentLevelExp === 50;
+                    },
+                    expected: 'level=2, currentLevelExp=50',
+                    actual: (() => {
+                        const p = NewLevelSystem.getExperienceProgress(150);
+                        return `level=${p.level}, currentLevelExp=${p.currentLevelExp}`;
+                    })()
+                }
+            ];
+            
+            let passCount = 0;
+            tests.forEach(test => {
+                const passed = test.test();
+                if (passed) passCount++;
+                
+                resultsDiv.innerHTML += `
+                    <div class="test-result ${passed ? 'pass' : 'fail'}">
+                        ${passed ? '✅' : '❌'} ${test.name}<br>
+                        期望: ${test.expected}, 实际: ${test.actual}
+                    </div>
+                `;
+            });
+            
+            resultsDiv.innerHTML += `
+                <div class="test-result info">
+                    <strong>测试总结：</strong> ${passCount}/${tests.length} 个测试通过
+                </div>
+            `;
+        }
+        
+        function runMilestoneTests() {
+            const resultsDiv = document.getElementById('milestone-results');
+            resultsDiv.innerHTML = '<h3>里程碑系统测试</h3>';
+            
+            LEVEL_MILESTONES.forEach(milestone => {
+                const requiredExp = NewLevelSystem.getExperienceRequiredForLevel(milestone.level);
+                const nextLevelExp = NewLevelSystem.getExperienceForNextLevel(milestone.level);
+                
+                resultsDiv.innerHTML += `
+                    <div class="test-result info">
+                        <strong>等级 ${milestone.level} - ${milestone.title}</strong><br>
+                        ${milestone.description}<br>
+                        需要总经验: ${requiredExp.toLocaleString()}<br>
+                        升级需求: ${nextLevelExp.toLocaleString()}
+                    </div>
+                `;
+            });
+        }
+        
+        function runPerformanceTests() {
+            const resultsDiv = document.getElementById('performance-results');
+            resultsDiv.innerHTML = '<h3>性能测试结果</h3>';
+            
+            // 清空缓存以测试初始性能
+            NewLevelSystem.clearCache();
+            
+            // 测试高等级计算性能
+            const start1 = performance.now();
+            for (let level = 80; level <= 100; level++) {
+                NewLevelSystem.getExperienceRequiredForLevel(level);
+            }
+            const time1 = performance.now() - start1;
+            
+            // 测试缓存性能
+            const start2 = performance.now();
+            for (let level = 80; level <= 100; level++) {
+                NewLevelSystem.getExperienceRequiredForLevel(level);
+            }
+            const time2 = performance.now() - start2;
+            
+            // 测试反向查找性能
+            const start3 = performance.now();
+            const testExperiences = [1000, 10000, 100000, 500000, 1000000];
+            testExperiences.forEach(exp => {
+                NewLevelSystem.calculateLevel(exp);
+            });
+            const time3 = performance.now() - start3;
+            
+            resultsDiv.innerHTML += `
+                <div class="test-result ${time1 < 50 ? 'pass' : 'fail'}">
+                    高等级计算性能: ${time1.toFixed(2)}ms (目标: <50ms)
+                </div>
+                <div class="test-result ${time2 < time1 / 2 ? 'pass' : 'fail'}">
+                    缓存性能提升: ${time2.toFixed(2)}ms (提升: ${((time1 - time2) / time1 * 100).toFixed(1)}%)
+                </div>
+                <div class="test-result ${time3 < 20 ? 'pass' : 'fail'}">
+                    反向查找性能: ${time3.toFixed(2)}ms (目标: <20ms)
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

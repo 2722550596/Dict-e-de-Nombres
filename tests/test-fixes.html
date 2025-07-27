@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>修复验证测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        .test-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .language-selector {
+            margin: 20px 0;
+        }
+        select {
+            padding: 8px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>修复验证测试页面</h1>
+    
+    <div class="language-selector">
+        <label for="languageSelect">选择语言测试：</label>
+        <select id="languageSelect">
+            <option value="fr">🇫🇷 Français</option>
+            <option value="en">🇺🇸 English</option>
+            <option value="zh">🇨🇳 中文</option>
+        </select>
+    </div>
+
+    <div class="test-section success">
+        <h2>✅ 修复完成项目</h2>
+        
+        <div class="test-item">
+            <h3>1. HUD界面多语言支持</h3>
+            <p><strong>修复内容：</strong>将硬编码的 "Niveau" 替换为 translations.hud.level</p>
+            <p><strong>测试方法：</strong>切换语言，观察HUD中的等级文本是否正确翻译</p>
+            <p><strong>预期结果：</strong></p>
+            <ul>
+                <li>法语：Niveau</li>
+                <li>英语：Level</li>
+                <li>中文：等级</li>
+            </ul>
+        </div>
+
+        <div class="test-item">
+            <h3>2. 清除准确率记录弹窗改为模态框</h3>
+            <p><strong>修复内容：</strong>将原生 confirm() 弹窗替换为 ConfirmModal 组件</p>
+            <p><strong>测试方法：</strong>在数字听写设置页面，点击推荐横幅中的 × 按钮</p>
+            <p><strong>预期结果：</strong>显示美观的模态框而不是浏览器原生弹窗</p>
+        </div>
+
+        <div class="test-item">
+            <h3>3. HUD音效增强</h3>
+            <p><strong>修复内容：</strong>为HUD组件添加悬浮和点击音效</p>
+            <p><strong>测试方法：</strong>鼠标悬浮在HUD上，然后点击HUD</p>
+            <p><strong>预期结果：</strong>悬浮时播放hover音效，点击时播放click音效</p>
+        </div>
+
+        <div class="test-item">
+            <h3>4. Debug页面多语言支持</h3>
+            <p><strong>修复内容：</strong>修复Debug页面初始显示为中文的问题</p>
+            <p><strong>测试方法：</strong>打开 <a href="debug-experience-i18n.html" target="_blank">Debug页面</a></p>
+            <p><strong>预期结果：</strong>页面默认显示英语，语言切换正常工作</p>
+        </div>
+
+        <div class="test-item">
+            <h3>5. 难度选择器多语言支持</h3>
+            <p><strong>修复内容：</strong>将难度选项中的硬编码中文描述替换为翻译系统</p>
+            <p><strong>测试方法：</strong>在主页选择"数字听写"，点击难度选择器</p>
+            <p><strong>预期结果：</strong>所有难度选项都正确翻译，切换语言时选项文本也会改变</p>
+        </div>
+    </div>
+
+    <div class="test-section info">
+        <h2>🔧 技术实现详情</h2>
+        
+        <div class="test-item">
+            <h3>修改的文件：</h3>
+            <ul>
+                <li><code>src/i18n/languages.ts</code> - 添加了 clearStatsModal 翻译文本</li>
+                <li><code>src/components/GameHUD.tsx</code> - 修复多语言支持并添加音效</li>
+                <li><code>src/components/NumberDictation/NumberSettingsPanel.tsx</code> - 使用模态框替换原生弹窗</li>
+                <li><code>src/components/DifficultySelector.tsx</code> - 修复难度选项多语言支持</li>
+                <li><code>debug-experience-i18n.html</code> - 修复Debug页面默认语言显示</li>
+            </ul>
+        </div>
+
+        <div class="test-item">
+            <h3>新增的翻译键：</h3>
+            <pre>clearStatsModal: {
+  title: string;
+  message: string;
+}</pre>
+            <p>支持法语、英语、中文三种语言</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 手动测试步骤</h2>
+        
+        <div class="test-item">
+            <h3>测试1：HUD多语言</h3>
+            <ol>
+                <li>打开主应用 <a href="http://localhost:5173/" target="_blank">http://localhost:5173/</a></li>
+                <li>观察右上角HUD显示的等级文本</li>
+                <li>切换语言选择器</li>
+                <li>确认等级文本正确翻译</li>
+            </ol>
+        </div>
+
+        <div class="test-item">
+            <h3>测试2：清除统计模态框</h3>
+            <ol>
+                <li>在主页选择"数字听写"</li>
+                <li>如果有推荐横幅，点击右侧的 × 按钮</li>
+                <li>确认显示模态框而不是浏览器弹窗</li>
+                <li>测试取消和确认功能</li>
+            </ol>
+        </div>
+
+        <div class="test-item">
+            <h3>测试3：HUD音效</h3>
+            <ol>
+                <li>确保浏览器音效已启用</li>
+                <li>鼠标悬浮在右上角HUD上</li>
+                <li>听到悬浮音效</li>
+                <li>点击HUD</li>
+                <li>听到点击音效并观察HUD展开/收起</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📝 测试结果记录</h2>
+        <div class="test-item">
+            <button class="btn-success" onclick="recordTest('hud-i18n')">✅ HUD多语言测试通过</button>
+            <button class="btn-success" onclick="recordTest('modal')">✅ 模态框测试通过</button>
+            <button class="btn-success" onclick="recordTest('audio')">✅ 音效测试通过</button>
+            <button class="btn-success" onclick="recordTest('debug-i18n')">✅ Debug页面多语言测试通过</button>
+        </div>
+        <div id="testResults"></div>
+    </div>
+
+    <script>
+        let testResults = [];
+        
+        function recordTest(testType) {
+            const timestamp = new Date().toLocaleTimeString();
+            const testNames = {
+                'hud-i18n': 'HUD多语言支持',
+                'modal': '清除统计模态框',
+                'audio': 'HUD音效增强',
+                'debug-i18n': 'Debug页面多语言支持'
+            };
+            
+            testResults.push({
+                test: testNames[testType],
+                time: timestamp,
+                status: '通过'
+            });
+            
+            updateTestResults();
+        }
+        
+        function updateTestResults() {
+            const resultsDiv = document.getElementById('testResults');
+            resultsDiv.innerHTML = '<h4>测试记录：</h4>' + 
+                testResults.map(result => 
+                    `<p>✅ ${result.test} - ${result.time}</p>`
+                ).join('');
+        }
+        
+        // 语言切换演示
+        document.getElementById('languageSelect').addEventListener('change', (e) => {
+            const lang = e.target.value;
+            const examples = {
+                'fr': 'Niveau',
+                'en': 'Level', 
+                'zh': '等级'
+            };
+            console.log(`HUD等级文本应显示为: ${examples[lang]}`);
+        });
+    </script>
+</body>
+</html>
