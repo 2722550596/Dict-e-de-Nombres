@@ -75,6 +75,12 @@ This application requires:
 - French language pack installed for text-to-speech
 - JavaScript enabled
 
+## Debug Tools
+
+For development and testing purposes, debug tools are available at:
+- `/debug/voice-test.html` - Voice testing tool
+- `/debug/voice-test-i18n.html` - Multilingual voice testing tool
+
 ## UI/UX Guidelines
 
 ### Icon Usage Policy
