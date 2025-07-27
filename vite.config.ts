@@ -28,14 +28,14 @@ export default defineConfig(({ mode, command }) => {
         input: {
           main: path.resolve(__dirname, 'index.html'),
           // 包含调试文件到生产构建中
-          voiceTest: path.resolve(__dirname, 'debug/voice-test.html'),
-          voiceTestI18n: path.resolve(__dirname, 'debug/voice-test-i18n.html'),
-          debugExperience: path.resolve(__dirname, 'debug/debug-experience.html'),
-          debugExperienceI18n: path.resolve(__dirname, 'debug/debug-experience-i18n.html'),
-          testVoiceFix: path.resolve(__dirname, 'debug/test-voice-fix.html'),
-          dynamicTitleTest: path.resolve(__dirname, 'debug/dynamic-title-test.html'),
-          multilingualTest: path.resolve(__dirname, 'debug/multilingual-test.html'),
-          testLanguageSync: path.resolve(__dirname, 'debug/test-language-sync.html')
+          'debug/voice-test': path.resolve(__dirname, 'debug/voice-test.html'),
+          'debug/voice-test-i18n': path.resolve(__dirname, 'debug/voice-test-i18n.html'),
+          'debug/debug-experience': path.resolve(__dirname, 'debug/debug-experience.html'),
+          'debug/debug-experience-i18n': path.resolve(__dirname, 'debug/debug-experience-i18n.html'),
+          'debug/test-voice-fix': path.resolve(__dirname, 'debug/test-voice-fix.html'),
+          'debug/dynamic-title-test': path.resolve(__dirname, 'debug/dynamic-title-test.html'),
+          'debug/multilingual-test': path.resolve(__dirname, 'debug/multilingual-test.html'),
+          'debug/test-language-sync': path.resolve(__dirname, 'debug/test-language-sync.html')
         }
       }
     },
