@@ -130,7 +130,7 @@ export class GameDataManager {
       number: number;
       correct: boolean;
       userAnswer: string;
-      mode: 'number' | 'math';
+      mode: 'number' | 'math' | 'time' | 'direction' | 'length';
       operator?: string;
     }[]
   ): number {
@@ -303,7 +303,7 @@ export class GameDataManager {
       number: number;
       correct: boolean;
       userAnswer: string;
-      mode: 'number' | 'math';
+      mode: 'number' | 'math' | 'time' | 'direction' | 'length';
       operator?: string;
     }[]
   ): RewardInfo {

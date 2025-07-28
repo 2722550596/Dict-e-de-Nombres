@@ -59,36 +59,46 @@ export function useAudioPlayer({ items, onPlaybackComplete, language }: UseAudio
   }, []);
 
   const getBestVoiceForCurrentLanguage = useCallback((targetLang?: string) => {
-    if (!window.speechSynthesis) return null;
-
-    const voices = window.speechSynthesis.getVoices();
     const speechLang = targetLang || language || getCurrentDictationLanguage();
 
-    // 首先尝试精确匹配
-    let bestVoice = voices.find(voice =>
-      voice.lang.toLowerCase() === speechLang.toLowerCase()
-    );
+    // 尝试使用新的TTS优化系统
+    try {
+      const { ttsOptimizer } = require('../utils/i18n/tts-optimizer');
+      return ttsOptimizer.getBestVoiceForLanguage(speechLang);
+    } catch (error) {
+      console.warn('Failed to use TTS optimizer for voice selection, falling back to legacy logic:', error);
 
-    // 如果没有精确匹配，尝试语言代码匹配
-    if (!bestVoice) {
-      const langCode = speechLang.split('-')[0].toLowerCase();
-      bestVoice = voices.find(voice =>
-        voice.lang.toLowerCase().startsWith(langCode)
-      );
-    }
+      // 回退到原有的语音选择逻辑
+      if (!window.speechSynthesis) return null;
 
-    // 优先选择本地语音
-    if (bestVoice && !bestVoice.localService) {
-      const localVoice = voices.find(voice =>
-        voice.lang.toLowerCase().startsWith(speechLang.split('-')[0].toLowerCase()) &&
-        voice.localService
+      const voices = window.speechSynthesis.getVoices();
+
+      // 首先尝试精确匹配
+      let bestVoice = voices.find(voice =>
+        voice.lang.toLowerCase() === speechLang.toLowerCase()
       );
-      if (localVoice) {
-        bestVoice = localVoice;
+
+      // 如果没有精确匹配，尝试语言代码匹配
+      if (!bestVoice) {
+        const langCode = speechLang.split('-')[0].toLowerCase();
+        bestVoice = voices.find(voice =>
+          voice.lang.toLowerCase().startsWith(langCode)
+        );
       }
-    }
 
-    return bestVoice;
+      // 优先选择本地语音
+      if (bestVoice && !bestVoice.localService) {
+        const localVoice = voices.find(voice =>
+          voice.lang.toLowerCase().startsWith(speechLang.split('-')[0].toLowerCase()) &&
+          voice.localService
+        );
+        if (localVoice) {
+          bestVoice = localVoice;
+        }
+      }
+
+      return bestVoice;
+    }
   }, [language, getCurrentDictationLanguage]);
 
   const checkVoiceSupport = useCallback(() => {
@@ -143,20 +153,32 @@ export function useAudioPlayer({ items, onPlaybackComplete, language }: UseAudio
     });
 
     const text = items[index];
-    const utterance = new SpeechSynthesisUtterance(text);
-
-    // 使用动态语言设置
     const speechLang = language || getCurrentDictationLanguage();
-    utterance.lang = speechLang;
-    utterance.volume = 1;
-    utterance.pitch = 1;
 
-    const bestVoice = getBestVoiceForCurrentLanguage(speechLang);
-    if (bestVoice) {
-      utterance.voice = bestVoice;
+    // 尝试使用新的TTS优化系统
+    let utterance: SpeechSynthesisUtterance;
+    try {
+      const { ttsOptimizer } = require('../utils/i18n/tts-optimizer');
+      utterance = ttsOptimizer.createOptimizedUtterance(text, speechLang);
+
+      // 应用速度设置
+      utterance.rate = speed !== undefined ? speed : playbackSpeedRef.current;
+    } catch (error) {
+      console.warn('Failed to use TTS optimizer, falling back to legacy TTS:', error);
+
+      // 回退到原有的TTS逻辑
+      utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = speechLang;
+      utterance.volume = 1;
+      utterance.pitch = 1;
+
+      const bestVoice = getBestVoiceForCurrentLanguage(speechLang);
+      if (bestVoice) {
+        utterance.voice = bestVoice;
+      }
+
+      utterance.rate = speed !== undefined ? speed : playbackSpeedRef.current;
     }
-
-    utterance.rate = speed !== undefined ? speed : playbackSpeedRef.current;
 
     utterance.onend = () => {
       if (playbackTimeoutRef.current) {

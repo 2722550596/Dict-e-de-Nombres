@@ -221,6 +221,173 @@ export const ACHIEVEMENTS: Achievement[] = [
   }
 ] as const;
 
+// ==================== 新模式配置 ====================
+export const NEW_MODE_CONFIGS = {
+  time: {
+    name: '时间听写',
+    experienceMultiplier: 1.3,
+    difficulty: 'medium'
+  },
+  direction: {
+    name: '方位听写',
+    experienceMultiplier: 1.1,
+    difficulty: 'easy'
+  },
+  length: {
+    name: '长度听写',
+    experienceMultiplier: 1.4,
+    difficulty: 'medium'
+  }
+} as const;
+
+// ==================== 时间模式难度配置 ====================
+export const TIME_DIFFICULTIES = {
+  'years-only': '仅年份',
+  'months-only': '仅月份',
+  'days-only': '仅日期',
+  'weekdays-only': '仅星期',
+  'full-dates': '完整日期',
+  'mixed-time': '混合时间'
+} as const;
+
+// ==================== 方位模式难度配置 ====================
+export const DIRECTION_DIFFICULTIES = {
+  'cardinal-only': '基本方位',
+  'relative-only': '相对方位',
+  'spatial-only': '空间方位',
+  'mixed-directions': '混合方位'
+} as const;
+
+// ==================== 长度模式难度配置 ====================
+export const LENGTH_DIFFICULTIES = {
+  'basic-units': '基础单位',
+  'metric-system': '公制单位',
+  'mixed-units': '混合单位',
+  'complex-measurements': '复合度量'
+} as const;
+
+// ==================== 时间模式详细难度配置 ====================
+export interface TimeDifficultyConfig {
+  name: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  experienceMultiplier: number;
+  timeTypes: ('year' | 'month' | 'day' | 'weekday' | 'fullDate')[];
+}
+
+export const TIME_DIFFICULTY_CONFIGS: Record<string, TimeDifficultyConfig> = {
+  'years-only': {
+    name: '仅年份',
+    difficulty: 'easy',
+    experienceMultiplier: 1.1,
+    timeTypes: ['year']
+  },
+  'months-only': {
+    name: '仅月份',
+    difficulty: 'easy',
+    experienceMultiplier: 1.2,
+    timeTypes: ['month']
+  },
+  'days-only': {
+    name: '仅日期',
+    difficulty: 'easy',
+    experienceMultiplier: 1.1,
+    timeTypes: ['day']
+  },
+  'weekdays-only': {
+    name: '仅星期',
+    difficulty: 'easy',
+    experienceMultiplier: 1.2,
+    timeTypes: ['weekday']
+  },
+  'full-dates': {
+    name: '完整日期',
+    difficulty: 'hard',
+    experienceMultiplier: 1.8,
+    timeTypes: ['fullDate']
+  },
+  'mixed-time': {
+    name: '混合时间',
+    difficulty: 'hard',
+    experienceMultiplier: 1.6,
+    timeTypes: ['year', 'month', 'day', 'weekday', 'fullDate']
+  }
+} as const;
+
+// ==================== 方位模式详细难度配置 ====================
+export interface DirectionDifficultyConfig {
+  name: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  experienceMultiplier: number;
+  directionTypes: ('cardinal' | 'relative' | 'spatial')[];
+}
+
+export const DIRECTION_DIFFICULTY_CONFIGS: Record<string, DirectionDifficultyConfig> = {
+  'cardinal-only': {
+    name: '基本方位',
+    difficulty: 'easy',
+    experienceMultiplier: 1.0,
+    directionTypes: ['cardinal']
+  },
+  'relative-only': {
+    name: '相对方位',
+    difficulty: 'medium',
+    experienceMultiplier: 1.3,
+    directionTypes: ['relative']
+  },
+  'spatial-only': {
+    name: '空间方位',
+    difficulty: 'medium',
+    experienceMultiplier: 1.4,
+    directionTypes: ['spatial']
+  },
+  'mixed-directions': {
+    name: '混合方位',
+    difficulty: 'hard',
+    experienceMultiplier: 1.6,
+    directionTypes: ['cardinal', 'relative', 'spatial']
+  }
+} as const;
+
+// ==================== 长度模式详细难度配置 ====================
+export interface LengthDifficultyConfig {
+  name: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  experienceMultiplier: number;
+  units: string[];
+  range: [number, number];
+}
+
+export const LENGTH_DIFFICULTY_CONFIGS: Record<string, LengthDifficultyConfig> = {
+  'basic-units': {
+    name: '基础单位',
+    difficulty: 'easy',
+    experienceMultiplier: 1.2,
+    units: ['米', '厘米'],
+    range: [1, 100]
+  },
+  'metric-system': {
+    name: '公制单位',
+    difficulty: 'medium',
+    experienceMultiplier: 1.4,
+    units: ['毫米', '厘米', '米', '千米'],
+    range: [1, 1000]
+  },
+  'mixed-units': {
+    name: '混合单位',
+    difficulty: 'hard',
+    experienceMultiplier: 1.6,
+    units: ['毫米', '厘米', '米', '千米', '英寸', '英尺'],
+    range: [1, 10000]
+  },
+  'complex-measurements': {
+    name: '复合度量',
+    difficulty: 'hard',
+    experienceMultiplier: 1.8,
+    units: ['毫米', '厘米', '米', '千米', '英寸', '英尺', '码', '英里'],
+    range: [0.1, 100000]
+  }
+} as const;
+
 // ==================== 推荐系统配置 ====================
 export interface RecommendationConfig {
   accuracyThreshold: number;
@@ -238,3 +405,8 @@ export const RECOMMENDATION_CONFIG: RecommendationConfig = {
 export type DifficultyLevel = keyof typeof DIFFICULTY_CONFIGS;
 export type SpecialNumberType = keyof typeof SPECIAL_NUMBER_CONFIGS;
 export type AchievementId = typeof ACHIEVEMENTS[number]['id'];
+
+// 新模式难度类型
+export type TimeDifficultyType = keyof typeof TIME_DIFFICULTIES;
+export type DirectionDifficultyType = keyof typeof DIRECTION_DIFFICULTIES;
+export type LengthDifficultyType = keyof typeof LENGTH_DIFFICULTIES;

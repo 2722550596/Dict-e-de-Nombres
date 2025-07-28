@@ -12,8 +12,13 @@ export * from './user.types';
 
 // ==================== 重新导出常用类型 ====================
 import type { SoundEffect } from './audio.types';
-import type { GameSession, MathOperator } from './game.types';
-import type { RewardInfo, UserData, UserPreferences } from './user.types';
+import type { MathOperator } from './game.types';
+import type {
+  GameSession,
+  RewardInfo,
+  UserData,
+  UserPreferences
+} from './user.types';
 
 // ==================== 类型聚合 ====================
 export interface AppState {
@@ -151,6 +156,35 @@ export default {
       language: 'fr',
       volume: 0.7,
     },
+    // 新模式统计默认值（8.1新增）
+    timeDictationStats: {
+      totalSessions: 0,
+      totalCorrect: 0,
+      totalQuestions: 0,
+      bestAccuracy: 0,
+      averageAccuracy: 0,
+      favoriteTimeType: 'year',
+      timeTypeStats: {},
+    },
+    directionDictationStats: {
+      totalSessions: 0,
+      totalCorrect: 0,
+      totalQuestions: 0,
+      bestAccuracy: 0,
+      averageAccuracy: 0,
+      favoriteDirectionType: 'cardinal',
+      directionTypeStats: {},
+    },
+    lengthDictationStats: {
+      totalSessions: 0,
+      totalCorrect: 0,
+      totalQuestions: 0,
+      bestAccuracy: 0,
+      averageAccuracy: 0,
+      favoriteUnit: '米',
+      unitStats: {},
+    },
+    newModesDataVersion: 1,
   }),
 
   // 类型检查工具
@@ -160,3 +194,11 @@ export default {
     isRewardInfo,
   },
 };
+
+// ==================== 推荐系统类型导出 (8.2新增) ====================
+export type {
+  CrossModeAnalysis,
+  DifficultyRecommendation, EnhancedRecommendationResult,
+  ModePerformanceAnalysis, PracticeAnalysis, RecommendationResult
+} from './user.types';
+

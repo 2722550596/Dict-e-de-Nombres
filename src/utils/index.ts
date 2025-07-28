@@ -18,6 +18,11 @@ export * from './math/french-numbers';
 // ==================== 音频工具 ====================
 export * from './audio/effects';
 
+// ==================== 内容生成工具 ====================
+export * from './directionGeneration';
+export * from './lengthGeneration';
+export * from './timeGeneration';
+
 // ==================== 向后兼容导出 ====================
 // 为了保持向后兼容性，重新导出一些常用的函数和类
 

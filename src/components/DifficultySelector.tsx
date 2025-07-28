@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../hooks/useLanguage';
 import './DifficultySelector.css';
 
@@ -13,12 +13,16 @@ interface DifficultySelectorProps {
   value: string;
   onChange: (value: string) => void;
   recommendedRange?: string;
+  enhancedRecommendation?: any; // 8.2新增：增强推荐信息
+  currentMode?: 'number' | 'time' | 'direction' | 'length'; // 8.2新增：当前模式
 }
 
 export const DifficultySelector: React.FC<DifficultySelectorProps> = ({
   value,
   onChange,
-  recommendedRange
+  recommendedRange,
+  enhancedRecommendation,
+  currentMode = 'number'
 }) => {
   const { translations } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
@@ -67,10 +71,32 @@ export const DifficultySelector: React.FC<DifficultySelectorProps> = ({
     { key: 'custom', label: translations.difficulties.custom, category: 'special' }
   ];
 
+  // 获取增强推荐的难度建议
+  const getEnhancedRecommendedDifficulties = (): string[] => {
+    if (!enhancedRecommendation || !currentMode) return [];
+
+    const currentModeRec = enhancedRecommendation.difficultyRecommendations?.find(
+      (rec: any) => rec.mode === currentMode
+    );
+
+    if (!currentModeRec) return [];
+
+    // 根据推荐难度映射到具体的选项键
+    const difficultyMapping: { [key: string]: string[] } = {
+      'beginner': ['0-9', '0-16', '0-20'],
+      'intermediate': ['0-30', '0-50', '20-69'],
+      'advanced': ['50-99', '70-99', '0-99'],
+      'expert': ['100-199', '100-999', '1000-9999']
+    };
+
+    return difficultyMapping[currentModeRec.currentLevel] || [];
+  };
+
   // 添加推荐标记
+  const enhancedRecommendedKeys = getEnhancedRecommendedDifficulties();
   const options = allOptions.map(option => ({
     ...option,
-    recommended: option.key === recommendedRange
+    recommended: option.key === recommendedRange || enhancedRecommendedKeys.includes(option.key)
   }));
 
   // 按类别分组

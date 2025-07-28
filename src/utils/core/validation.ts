@@ -3,7 +3,7 @@
  * 提供统一的数据验证、类型检查和数据清理功能
  */
 
-import type { UserData, GameSession, MathProblem } from '../../types';
+import type { GameSession, MathProblem, UserData } from '../../types';
 import { createValidationError, handleError } from './errors';
 
 // 验证结果接口
@@ -47,7 +47,7 @@ export class Validator<T> {
       try {
         if (!rule.validate(value)) {
           const message = `${rule.name}: ${rule.message}`;
-          
+
           if (rule.severity === 'warning') {
             warnings.push(message);
           } else {
@@ -120,13 +120,65 @@ export const validators = {
   /**
    * 检查对象是否有指定属性
    */
-  hasProperty: (property: string) => (value: any): boolean => 
+  hasProperty: (property: string) => (value: any): boolean =>
     value && typeof value === 'object' && property in value,
 
   /**
    * 检查是否为有效的数学运算符
    */
   isValidMathOperator: (value: any): boolean => ['+', '-', '×', '÷'].includes(value),
+
+  /**
+   * 检查是否为有效的游戏模式
+   */
+  isValidGameMode: (value: any): boolean => ['number', 'math', 'time', 'direction', 'length'].includes(value),
+
+  /**
+   * 检查是否为有效的时间类型
+   */
+  isValidTimeType: (value: any): boolean => ['year', 'month', 'day', 'weekday', 'fullDate'].includes(value),
+
+  /**
+   * 检查是否为有效的方位类型
+   */
+  isValidDirectionType: (value: any): boolean => ['cardinal', 'relative', 'spatial'].includes(value),
+
+  /**
+   * 检查是否为有效的长度单位
+   */
+  isValidLengthUnit: (value: any): boolean => typeof value === 'string' && value.trim().length > 0,
+};
+
+/**
+ * 新模式统计验证函数（8.1新增）
+ */
+const isValidModeStats = (stats: any): boolean => {
+  if (!stats || typeof stats !== 'object') return false;
+
+  return validators.isNumber(stats.totalSessions) && validators.isNonNegative(stats.totalSessions) &&
+    validators.isNumber(stats.totalCorrect) && validators.isNonNegative(stats.totalCorrect) &&
+    validators.isNumber(stats.totalQuestions) && validators.isNonNegative(stats.totalQuestions) &&
+    validators.isNumber(stats.bestAccuracy) && validators.inRange(0, 1)(stats.bestAccuracy) &&
+    validators.isNumber(stats.averageAccuracy) && validators.inRange(0, 1)(stats.averageAccuracy) &&
+    typeof stats.favoriteTimeType === 'string' || typeof stats.favoriteDirectionType === 'string' || typeof stats.favoriteUnit === 'string';
+};
+
+const isValidTimeDictationStats = (stats: any): boolean => {
+  if (!isValidModeStats(stats)) return false;
+  return validators.isValidTimeType(stats.favoriteTimeType) &&
+    (!stats.timeTypeStats || typeof stats.timeTypeStats === 'object');
+};
+
+const isValidDirectionDictationStats = (stats: any): boolean => {
+  if (!isValidModeStats(stats)) return false;
+  return validators.isValidDirectionType(stats.favoriteDirectionType) &&
+    (!stats.directionTypeStats || typeof stats.directionTypeStats === 'object');
+};
+
+const isValidLengthDictationStats = (stats: any): boolean => {
+  if (!isValidModeStats(stats)) return false;
+  return validators.isValidLengthUnit(stats.favoriteUnit) &&
+    (!stats.unitStats || typeof stats.unitStats === 'object');
 };
 
 /**
@@ -159,6 +211,27 @@ export const createUserDataValidator = (): Validator<UserData> => {
       validate: (data) => validators.isValidDateString(data.lastActiveDate),
       message: 'Last active date must be a valid date string',
     })
+    // 新模式统计验证（8.1新增）
+    .addRule({
+      name: 'timeDictationStats',
+      validate: (data) => !data.timeDictationStats || isValidModeStats(data.timeDictationStats),
+      message: 'Time dictation stats must be valid if present',
+    })
+    .addRule({
+      name: 'directionDictationStats',
+      validate: (data) => !data.directionDictationStats || isValidModeStats(data.directionDictationStats),
+      message: 'Direction dictation stats must be valid if present',
+    })
+    .addRule({
+      name: 'lengthDictationStats',
+      validate: (data) => !data.lengthDictationStats || isValidModeStats(data.lengthDictationStats),
+      message: 'Length dictation stats must be valid if present',
+    })
+    .addRule({
+      name: 'newModesDataVersion',
+      validate: (data) => !data.newModesDataVersion || (validators.isNumber(data.newModesDataVersion) && validators.isPositive(data.newModesDataVersion) && validators.isInteger(data.newModesDataVersion)),
+      message: 'New modes data version must be a positive integer if present',
+    })
     .addRule({
       name: 'totalQuestions',
       validate: (data) => validators.isNumber(data.totalQuestions) && validators.isNonNegative(data.totalQuestions) && validators.isInteger(data.totalQuestions),
@@ -188,8 +261,8 @@ export const createGameSessionValidator = (): Validator<GameSession> => {
   return new Validator<GameSession>()
     .addRule({
       name: 'mode',
-      validate: (data) => validators.isNonEmptyString(data.mode),
-      message: 'Mode must be a non-empty string',
+      validate: (data) => validators.isValidGameMode(data.mode),
+      message: 'Mode must be a valid game mode (number, math, time, direction, length)',
     })
     .addRule({
       name: 'score',
@@ -300,6 +373,71 @@ export const sanitizers = {
       sanitized.lastActiveDate = typeof data.lastActiveDate === 'string' ? data.lastActiveDate : new Date().toDateString();
     }
 
+    // 新模式统计清理（8.1新增）
+    if (data.timeDictationStats !== undefined) {
+      sanitized.timeDictationStats = sanitizers.sanitizeModeStats(data.timeDictationStats, 'time');
+    }
+    if (data.directionDictationStats !== undefined) {
+      sanitized.directionDictationStats = sanitizers.sanitizeModeStats(data.directionDictationStats, 'direction');
+    }
+    if (data.lengthDictationStats !== undefined) {
+      sanitized.lengthDictationStats = sanitizers.sanitizeModeStats(data.lengthDictationStats, 'length');
+    }
+    if (data.newModesDataVersion !== undefined) {
+      sanitized.newModesDataVersion = Math.max(1, Math.floor(Math.abs(data.newModesDataVersion)));
+    }
+
+    return sanitized;
+  },
+
+  /**
+   * 清理新模式统计数据（8.1新增）
+   */
+  sanitizeModeStats: (stats: any, mode: 'time' | 'direction' | 'length'): any => {
+    if (!stats || typeof stats !== 'object') {
+      // 返回默认值
+      const defaultStats = {
+        totalSessions: 0,
+        totalCorrect: 0,
+        totalQuestions: 0,
+        bestAccuracy: 0,
+        averageAccuracy: 0,
+      };
+
+      switch (mode) {
+        case 'time':
+          return { ...defaultStats, favoriteTimeType: 'year', timeTypeStats: {} };
+        case 'direction':
+          return { ...defaultStats, favoriteDirectionType: 'cardinal', directionTypeStats: {} };
+        case 'length':
+          return { ...defaultStats, favoriteUnit: '米', unitStats: {} };
+      }
+    }
+
+    const sanitized: any = {
+      totalSessions: Math.max(0, Math.floor(Math.abs(stats.totalSessions || 0))),
+      totalCorrect: Math.max(0, Math.floor(Math.abs(stats.totalCorrect || 0))),
+      totalQuestions: Math.max(0, Math.floor(Math.abs(stats.totalQuestions || 0))),
+      bestAccuracy: Math.max(0, Math.min(1, Math.abs(stats.bestAccuracy || 0))),
+      averageAccuracy: Math.max(0, Math.min(1, Math.abs(stats.averageAccuracy || 0))),
+    };
+
+    // 模式特定字段
+    switch (mode) {
+      case 'time':
+        sanitized.favoriteTimeType = validators.isValidTimeType(stats.favoriteTimeType) ? stats.favoriteTimeType : 'year';
+        sanitized.timeTypeStats = stats.timeTypeStats && typeof stats.timeTypeStats === 'object' ? stats.timeTypeStats : {};
+        break;
+      case 'direction':
+        sanitized.favoriteDirectionType = validators.isValidDirectionType(stats.favoriteDirectionType) ? stats.favoriteDirectionType : 'cardinal';
+        sanitized.directionTypeStats = stats.directionTypeStats && typeof stats.directionTypeStats === 'object' ? stats.directionTypeStats : {};
+        break;
+      case 'length':
+        sanitized.favoriteUnit = validators.isValidLengthUnit(stats.favoriteUnit) ? stats.favoriteUnit : '米';
+        sanitized.unitStats = stats.unitStats && typeof stats.unitStats === 'object' ? stats.unitStats : {};
+        break;
+    }
+
     return sanitized;
   },
 
@@ -322,6 +460,89 @@ export const sanitizers = {
 };
 
 /**
+ * 时间内容验证器
+ */
+export const createTimeContentValidator = (): Validator<import('../../types').TimeContent> => {
+  return new Validator<import('../../types').TimeContent>()
+    .addRule({
+      name: 'type',
+      validate: (data) => validators.isValidTimeType(data.type),
+      message: 'Type must be a valid time type (year, month, day, weekday, fullDate)',
+    })
+    .addRule({
+      name: 'value',
+      validate: (data) => validators.isNonEmptyString(data.value),
+      message: 'Value must be a non-empty string',
+    })
+    .addRule({
+      name: 'displayText',
+      validate: (data) => validators.isNonEmptyString(data.displayText),
+      message: 'Display text must be a non-empty string',
+    })
+    .addRule({
+      name: 'acceptedAnswers',
+      validate: (data) => validators.isNonEmptyArray(data.acceptedAnswers),
+      message: 'Accepted answers must be a non-empty array',
+    });
+};
+
+/**
+ * 方位内容验证器
+ */
+export const createDirectionContentValidator = (): Validator<import('../../types').DirectionContent> => {
+  return new Validator<import('../../types').DirectionContent>()
+    .addRule({
+      name: 'type',
+      validate: (data) => validators.isValidDirectionType(data.type),
+      message: 'Type must be a valid direction type (cardinal, relative, spatial)',
+    })
+    .addRule({
+      name: 'value',
+      validate: (data) => validators.isNonEmptyString(data.value),
+      message: 'Value must be a non-empty string',
+    })
+    .addRule({
+      name: 'displayText',
+      validate: (data) => validators.isNonEmptyString(data.displayText),
+      message: 'Display text must be a non-empty string',
+    })
+    .addRule({
+      name: 'buttonPosition',
+      validate: (data) => data.buttonPosition &&
+        validators.isNumber(data.buttonPosition.x) &&
+        validators.isNumber(data.buttonPosition.y),
+      message: 'Button position must have valid x and y coordinates',
+    });
+};
+
+/**
+ * 长度内容验证器
+ */
+export const createLengthContentValidator = (): Validator<import('../../types').LengthContent> => {
+  return new Validator<import('../../types').LengthContent>()
+    .addRule({
+      name: 'value',
+      validate: (data) => validators.isNumber(data.value) && validators.isPositive(data.value),
+      message: 'Value must be a positive number',
+    })
+    .addRule({
+      name: 'unit',
+      validate: (data) => validators.isValidLengthUnit(data.unit),
+      message: 'Unit must be a valid length unit string',
+    })
+    .addRule({
+      name: 'displayText',
+      validate: (data) => validators.isNonEmptyString(data.displayText),
+      message: 'Display text must be a non-empty string',
+    })
+    .addRule({
+      name: 'acceptedFormats',
+      validate: (data) => validators.isNonEmptyArray(data.acceptedFormats),
+      message: 'Accepted formats must be a non-empty array',
+    });
+};
+
+/**
  * 便捷的验证函数
  */
 export const validateUserData = (data: UserData): ValidationResult<UserData> => {
@@ -334,4 +555,16 @@ export const validateGameSession = (data: GameSession): ValidationResult<GameSes
 
 export const validateMathProblem = (data: MathProblem): ValidationResult<MathProblem> => {
   return createMathProblemValidator().validate(data);
+};
+
+export const validateTimeContent = (data: import('../../types').TimeContent): ValidationResult<import('../../types').TimeContent> => {
+  return createTimeContentValidator().validate(data);
+};
+
+export const validateDirectionContent = (data: import('../../types').DirectionContent): ValidationResult<import('../../types').DirectionContent> => {
+  return createDirectionContentValidator().validate(data);
+};
+
+export const validateLengthContent = (data: import('../../types').LengthContent): ValidationResult<import('../../types').LengthContent> => {
+  return createLengthContentValidator().validate(data);
 };

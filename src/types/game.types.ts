@@ -4,7 +4,7 @@
  */
 
 // ==================== 游戏模式 ====================
-export type GameMode = 'number' | 'math';
+export type GameMode = 'number' | 'math' | 'time' | 'direction' | 'length';
 
 // ==================== 难度等级 ====================
 export type DifficultyLevel = 'easy' | 'medium' | 'hard';
@@ -132,9 +132,23 @@ export interface ExerciseSettings {
   quantity: number;
   speed: 'slow' | 'normal' | 'fast';
   interval: number;
+
+  // 运算模式专用
   operations?: MathOperator[];
   maxResult?: number;
+
+  // 数字模式专用
   specialNumbers?: string[];
+
+  // 时间模式专用
+  timeTypes?: ('year' | 'month' | 'day' | 'weekday' | 'fullDate')[];
+
+  // 方位模式专用
+  directionTypes?: ('cardinal' | 'relative' | 'spatial')[];
+
+  // 长度模式专用
+  lengthUnits?: string[];
+  lengthRange?: [number, number];
 }
 
 // ==================== 数学问题 ====================
@@ -147,12 +161,36 @@ export interface MathProblem {
   difficulty?: DifficultyLevel;
 }
 
+// ==================== 时间听写内容 ====================
+export interface TimeContent {
+  type: 'year' | 'month' | 'day' | 'weekday' | 'fullDate';
+  value: string;
+  displayText: string;
+  acceptedAnswers: string[]; // 支持多种正确答案格式
+}
+
+// ==================== 方位听写内容 ====================
+export interface DirectionContent {
+  type: 'cardinal' | 'relative' | 'spatial'; // 基本方位、相对方位、空间方位
+  value: string;
+  displayText: string;
+  buttonPosition: { x: number; y: number }; // 按钮在界面中的位置
+}
+
+// ==================== 长度听写内容 ====================
+export interface LengthContent {
+  value: number;
+  unit: string;
+  displayText: string;
+  acceptedFormats: string[]; // 支持的输入格式
+}
+
 // ==================== 练习数据 ====================
 export interface Exercise {
   id: string;
   mode: GameMode;
   settings: ExerciseSettings;
-  questions: (number | MathProblem)[];
+  questions: (number | MathProblem | TimeContent | DirectionContent | LengthContent)[];
   createdAt: string;
   estimatedDuration: number;
 }
@@ -227,18 +265,56 @@ export const isMathProblem = (obj: any): obj is MathProblem => {
     typeof obj.displayText === 'string';
 };
 
+export const isTimeContent = (obj: any): obj is TimeContent => {
+  return obj &&
+    typeof obj.type === 'string' &&
+    ['year', 'month', 'day', 'weekday', 'fullDate'].includes(obj.type) &&
+    typeof obj.value === 'string' &&
+    typeof obj.displayText === 'string' &&
+    Array.isArray(obj.acceptedAnswers);
+};
+
+export const isDirectionContent = (obj: any): obj is DirectionContent => {
+  return obj &&
+    typeof obj.type === 'string' &&
+    ['cardinal', 'relative', 'spatial'].includes(obj.type) &&
+    typeof obj.value === 'string' &&
+    typeof obj.displayText === 'string' &&
+    obj.buttonPosition &&
+    typeof obj.buttonPosition.x === 'number' &&
+    typeof obj.buttonPosition.y === 'number';
+};
+
+export const isLengthContent = (obj: any): obj is LengthContent => {
+  return obj &&
+    typeof obj.value === 'number' &&
+    typeof obj.unit === 'string' &&
+    typeof obj.displayText === 'string' &&
+    Array.isArray(obj.acceptedFormats);
+};
+
 export const isExerciseSettings = (obj: any): obj is ExerciseSettings => {
   return obj &&
     typeof obj.mode === 'string' &&
+    ['number', 'math', 'time', 'direction', 'length'].includes(obj.mode) &&
     typeof obj.difficulty === 'string' &&
     Array.isArray(obj.range) &&
     obj.range.length === 2 &&
-    typeof obj.quantity === 'number';
+    typeof obj.quantity === 'number' &&
+    typeof obj.speed === 'string' &&
+    ['slow', 'normal', 'fast'].includes(obj.speed) &&
+    typeof obj.interval === 'number';
 };
 
 // ==================== 工具类型 ====================
-export type GameModeSettings<T extends GameMode> = T extends 'math' 
+export type GameModeSettings<T extends GameMode> = T extends 'math'
   ? ExerciseSettings & { operations: MathOperator[]; maxResult: number }
+  : T extends 'time'
+  ? ExerciseSettings & { timeTypes: ('year' | 'month' | 'day' | 'weekday' | 'fullDate')[] }
+  : T extends 'direction'
+  ? ExerciseSettings & { directionTypes: ('cardinal' | 'relative' | 'spatial')[] }
+  : T extends 'length'
+  ? ExerciseSettings & { lengthUnits: string[]; lengthRange: [number, number] }
   : ExerciseSettings & { specialNumbers?: string[] };
 
 export type DifficultyMap = Record<TraditionalDifficulty, DifficultyConfig>;
@@ -246,7 +322,7 @@ export type SpecialNumberMap = Record<string, SpecialNumberConfig>;
 export type AchievementMap = Record<string, AchievementDefinition>;
 
 // ==================== 常量类型 ====================
-export const GAME_MODES: readonly GameMode[] = ['number', 'math'] as const;
+export const GAME_MODES: readonly GameMode[] = ['number', 'math', 'time', 'direction', 'length'] as const;
 export const MATH_OPERATORS: readonly MathOperator[] = ['+', '-', '×', '÷'] as const;
 export const DIFFICULTY_LEVELS: readonly DifficultyLevel[] = ['easy', 'medium', 'hard'] as const;
 export const TRADITIONAL_DIFFICULTIES: readonly TraditionalDifficulty[] = ['Facile', 'Moyen', 'Difficile'] as const;
@@ -262,6 +338,16 @@ export const createDefaultExerciseSettings = (mode: GameMode = 'number'): Exerci
   ...(mode === 'math' && {
     operations: ['+'],
     maxResult: 100,
+  }),
+  ...(mode === 'time' && {
+    timeTypes: ['year', 'month', 'day'],
+  }),
+  ...(mode === 'direction' && {
+    directionTypes: ['cardinal'],
+  }),
+  ...(mode === 'length' && {
+    lengthUnits: ['米', '厘米'],
+    lengthRange: [1, 100],
   }),
 });
 

@@ -1,6 +1,6 @@
 import React from 'react';
-import { ExerciseMode } from '../types/exercise';
 import { useLanguage } from '../hooks/useLanguage';
+import { ExerciseMode } from '../types/exercise';
 
 interface ModeSelectorProps {
   selectedMode: ExerciseMode;
@@ -24,6 +24,24 @@ export const ModeSelector: React.FC<ModeSelectorProps> = ({ selectedMode, onMode
           onClick={() => onModeChange('math')}
         >
           {translations.modes.mathDictation}
+        </button>
+        <button
+          className={`mode-tab ${selectedMode === 'direction' ? 'active' : ''}`}
+          onClick={() => onModeChange('direction')}
+        >
+          {translations.modes.directionDictation || 'Direction Dictation'}
+        </button>
+        <button
+          className={`mode-tab ${selectedMode === 'time' ? 'active' : ''}`}
+          onClick={() => onModeChange('time')}
+        >
+          {translations.modes.timeDictation || 'Time Dictation'}
+        </button>
+        <button
+          className={`mode-tab ${selectedMode === 'length' ? 'active' : ''}`}
+          onClick={() => onModeChange('length')}
+        >
+          {translations.modes.lengthDictation || 'Length Dictation'}
         </button>
       </div>
     </div>

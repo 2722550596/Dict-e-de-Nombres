@@ -17,6 +17,9 @@ export interface Translations {
   modes: {
     numberDictation: string;
     mathDictation: string;
+    directionDictation: string;
+    timeDictation: string;
+    lengthDictation: string;
   };
 
   // 运算听写相关
@@ -24,6 +27,7 @@ export interface Translations {
   maxResult: string;
   selectAtLeastOneOperation: string;
   answerFor: string;
+  typeHere: string;
 
   operations: {
     addition: string;
@@ -68,6 +72,86 @@ export interface Translations {
   // 听写语言在当前界面语言下的显示名称
   dictationLanguageNames: {
     [key: string]: string;
+  };
+
+  // 新模式相关翻译
+  timeTypes: {
+    year: string;
+    month: string;
+    day: string;
+    weekday: string;
+    fullDate: string;
+  };
+
+  directionTypes: {
+    cardinal: string;
+    relative: string;
+    spatial: string;
+  };
+
+  lengthUnits: {
+    meter: string;
+    centimeter: string;
+    millimeter: string;
+    kilometer: string;
+    inch: string;
+    foot: string;
+    yard: string;
+  };
+
+  // 新模式难度翻译
+  newModeDifficulties: {
+    // 时间模式难度
+    'years-only': string;
+    'months-only': string;
+    'days-only': string;
+    'weekdays-only': string;
+    'full-dates': string;
+    'mixed-time': string;
+
+    // 方位模式难度
+    'cardinal-only': string;
+    'relative-only': string;
+    'spatial-only': string;
+    'mixed-directions': string;
+
+    // 长度模式难度
+    'metric-basic': string;
+    'metric-advanced': string;
+    'imperial-basic': string;
+    'imperial-advanced': string;
+    'mixed-units': string;
+  };
+
+  // 新模式界面文本
+  newModeTexts: {
+    selectTimeTypes: string;
+    selectDirectionTypes: string;
+    selectLengthUnits: string;
+    timeTypeDescription: string;
+    directionTypeDescription: string;
+    lengthUnitDescription: string;
+    selectedTypes: string;
+    playCurrentQuestion: string;
+    replayQuestion: string;
+    answerPlaceholder: string;
+    selectDirection: string;
+    question: string;
+    completed: string;
+    score: string;
+  };
+
+  // 音量控制翻译
+  volumeControl: {
+    mute: string;
+    unmute: string;
+    volumeLevel: string;
+  };
+
+  // 调试工具翻译
+  debug: {
+    voiceTest: string;
+    openDebugTools: string;
   };
 
   warnings: {
@@ -133,6 +217,101 @@ export interface Translations {
     prefix: string;
     suffix: string;
     allGood: string;
+  };
+
+  // 增强推荐系统相关 (8.2新增)
+  enhancedRecommendation: {
+    // 跨模式分析
+    crossModeAnalysis: {
+      title: string;
+      strongestMode: string;
+      weakestMode: string;
+      overallProgress: {
+        excellent: string;
+        good: string;
+        average: string;
+        needs_improvement: string;
+      };
+      balanceScore: string;
+      diversityScore: string;
+      focusRecommendation: string;
+    };
+
+    // 模式表现
+    modePerformance: {
+      accuracy: string;
+      sessions: string;
+      questions: string;
+      trend: {
+        improving: string;
+        stable: string;
+        declining: string;
+      };
+      lastPlayed: string;
+      experience: string;
+    };
+
+    // 难度推荐
+    difficultyRecommendation: {
+      title: string;
+      currentLevel: {
+        beginner: string;
+        intermediate: string;
+        advanced: string;
+        expert: string;
+      };
+      recommended: string;
+      confidence: string;
+      nextMilestone: string;
+      timeToMastery: string;
+    };
+
+    // 练习分析
+    practiceAnalysis: {
+      title: string;
+      dailyAverage: string;
+      weeklyFrequency: string;
+      bestTime: {
+        morning: string;
+        afternoon: string;
+        evening: string;
+        night: string;
+      };
+      consistency: string;
+      effectiveness: string;
+      recommendedFrequency: string;
+      recommendedDuration: string;
+      optimalTime: string;
+    };
+
+    // 建议类型
+    suggestions: {
+      immediate: string;
+      shortTerm: string;
+      longTerm: string;
+    };
+
+    // 数据质量
+    dataQuality: {
+      excellent: string;
+      good: string;
+      limited: string;
+      insufficient: string;
+    };
+
+    // 通用文本
+    common: {
+      minutes: string;
+      days: string;
+      weeks: string;
+      sessions: string;
+      accuracy: string;
+      score: string;
+      recommended: string;
+      current: string;
+      target: string;
+      progress: string;
+    };
   };
 
   // 清空统计相关
@@ -382,13 +561,17 @@ export const TRANSLATIONS: Record<string, Translations> = {
 
     modes: {
       numberDictation: "Dictée de nombres",
-      mathDictation: "Dictée d'opérations"
+      mathDictation: "Dictée d'opérations",
+      directionDictation: "Dictée de directions",
+      timeDictation: "Dictée de temps",
+      lengthDictation: "Dictée de longueurs"
     },
 
     operationTypes: "Types d'opérations",
     maxResult: "Résultat maximum",
     selectAtLeastOneOperation: "Veuillez sélectionner au moins une opération",
     answerFor: "Réponse pour le numéro",
+    typeHere: "Tapez ici...",
 
     operations: {
       addition: "Addition (+)",
@@ -398,6 +581,9 @@ export const TRANSLATIONS: Record<string, Translations> = {
     },
 
     difficulties: {
+      easy: "Facile",
+      medium: "Moyen",
+      hard: "Difficile",
       "0-9": "0-9",
       "0-16": "0-16 (Nombres de base)",
       "0-20": "0-20",
@@ -471,6 +657,76 @@ export const TRANSLATIONS: Record<string, Translations> = {
       'no': 'Norvégien'
     },
 
+    timeTypes: {
+      year: "Année",
+      month: "Mois",
+      day: "Jour",
+      weekday: "Jour de la semaine",
+      fullDate: "Date complète"
+    },
+
+    directionTypes: {
+      cardinal: "Directions cardinales",
+      relative: "Directions relatives",
+      spatial: "Directions spatiales"
+    },
+
+    lengthUnits: {
+      meter: "Mètre",
+      centimeter: "Centimètre",
+      millimeter: "Millimètre",
+      kilometer: "Kilomètre",
+      inch: "Pouce",
+      foot: "Pied",
+      yard: "Yard"
+    },
+
+    newModeDifficulties: {
+      'years-only': "Années seulement",
+      'months-only': "Mois seulement",
+      'days-only': "Jours seulement",
+      'weekdays-only': "Jours de la semaine seulement",
+      'full-dates': "Dates complètes",
+      'mixed-time': "Temps mixte",
+      'cardinal-only': "Directions cardinales seulement",
+      'relative-only': "Directions relatives seulement",
+      'spatial-only': "Directions spatiales seulement",
+      'mixed-directions': "Directions mixtes",
+      'metric-basic': "Unités métriques de base",
+      'metric-advanced': "Unités métriques avancées",
+      'imperial-basic': "Unités impériales de base",
+      'imperial-advanced': "Unités impériales avancées",
+      'mixed-units': "Unités mixtes"
+    },
+
+    newModeTexts: {
+      selectTimeTypes: "Sélectionnez les types de temps",
+      selectDirectionTypes: "Sélectionnez les types de directions",
+      selectLengthUnits: "Sélectionnez les unités de longueur",
+      timeTypeDescription: "Choisissez quels types de temps inclure dans l'exercice",
+      directionTypeDescription: "Choisissez quels types de directions inclure dans l'exercice",
+      lengthUnitDescription: "Choisissez quelles unités de longueur inclure dans l'exercice",
+      selectedTypes: "Types sélectionnés",
+      playCurrentQuestion: "Lire la question actuelle",
+      replayQuestion: "Répéter la question",
+      answerPlaceholder: "Tapez votre réponse ici...",
+      selectDirection: "Sélectionner la direction",
+      question: "Question",
+      completed: "Terminé",
+      score: "Score"
+    },
+
+    volumeControl: {
+      mute: "Couper le son",
+      unmute: "Rétablir le son",
+      volumeLevel: "Volume"
+    },
+
+    debug: {
+      voiceTest: "Test de voix",
+      openDebugTools: "Ouvrir les outils de débogage"
+    },
+
     warnings: {
       noSpeechSupport: "Votre navigateur ne supporte pas la synthèse vocale",
       noVoiceFound: "Aucune voix appropriée trouvée, utilisation de la voix par défaut",
@@ -531,6 +787,93 @@ export const TRANSLATIONS: Record<string, Translations> = {
       prefix: "Basé sur votre performance dans la plage",
       suffix: "de précision, nous recommandons de pratiquer",
       allGood: "Excellente maîtrise de toutes les plages, vous pouvez essayer un défi plus difficile ou une pratique mixte"
+    },
+
+    enhancedRecommendation: {
+      crossModeAnalysis: {
+        title: "Analyse inter-modes",
+        strongestMode: "Mode le plus fort",
+        weakestMode: "Mode le plus faible",
+        overallProgress: {
+          excellent: "Excellent",
+          good: "Bon",
+          average: "Moyen",
+          needs_improvement: "À améliorer"
+        },
+        balanceScore: "Score d'équilibre",
+        diversityScore: "Score de diversité",
+        focusRecommendation: "Mode recommandé à pratiquer"
+      },
+
+      modePerformance: {
+        accuracy: "Précision",
+        sessions: "Sessions",
+        questions: "Questions",
+        trend: {
+          improving: "En amélioration",
+          stable: "Stable",
+          declining: "En déclin"
+        },
+        lastPlayed: "Dernière pratique",
+        experience: "Expérience"
+      },
+
+      difficultyRecommendation: {
+        title: "Recommandation de difficulté",
+        currentLevel: {
+          beginner: "Débutant",
+          intermediate: "Intermédiaire",
+          advanced: "Avancé",
+          expert: "Expert"
+        },
+        recommended: "Recommandé",
+        confidence: "Confiance",
+        nextMilestone: "Prochain objectif",
+        timeToMastery: "Temps pour maîtriser"
+      },
+
+      practiceAnalysis: {
+        title: "Analyse de pratique",
+        dailyAverage: "Moyenne quotidienne",
+        weeklyFrequency: "Fréquence hebdomadaire",
+        bestTime: {
+          morning: "Matin",
+          afternoon: "Après-midi",
+          evening: "Soir",
+          night: "Nuit"
+        },
+        consistency: "Régularité",
+        effectiveness: "Efficacité",
+        recommendedFrequency: "Fréquence recommandée",
+        recommendedDuration: "Durée recommandée",
+        optimalTime: "Moment optimal"
+      },
+
+      suggestions: {
+        immediate: "Actions immédiates",
+        shortTerm: "Objectifs à court terme",
+        longTerm: "Objectifs à long terme"
+      },
+
+      dataQuality: {
+        excellent: "Excellente",
+        good: "Bonne",
+        limited: "Limitée",
+        insufficient: "Insuffisante"
+      },
+
+      common: {
+        minutes: "minutes",
+        days: "jours",
+        weeks: "semaines",
+        sessions: "sessions",
+        accuracy: "précision",
+        score: "score",
+        recommended: "recommandé",
+        current: "actuel",
+        target: "objectif",
+        progress: "progrès"
+      }
     },
 
     difficultySelector: {
@@ -660,13 +1003,17 @@ export const TRANSLATIONS: Record<string, Translations> = {
 
     modes: {
       numberDictation: "Number Dictation",
-      mathDictation: "Math Dictation"
+      mathDictation: "Math Dictation",
+      directionDictation: "Direction Dictation",
+      timeDictation: "Time Dictation",
+      lengthDictation: "Length Dictation"
     },
 
     operationTypes: "Operation Types",
     maxResult: "Maximum Result",
     selectAtLeastOneOperation: "Please select at least one operation",
     answerFor: "Answer for number",
+    typeHere: "Type here...",
 
     operations: {
       addition: "Addition (+)",
@@ -676,6 +1023,9 @@ export const TRANSLATIONS: Record<string, Translations> = {
     },
 
     difficulties: {
+      easy: "Easy",
+      medium: "Medium",
+      hard: "Hard",
       "0-9": "0-9",
       "0-16": "0-16 (Basic numbers)",
       "0-20": "0-20",
@@ -749,6 +1099,76 @@ export const TRANSLATIONS: Record<string, Translations> = {
       'no': 'Norwegian'
     },
 
+    timeTypes: {
+      year: "Year",
+      month: "Month",
+      day: "Day",
+      weekday: "Weekday",
+      fullDate: "Full Date"
+    },
+
+    directionTypes: {
+      cardinal: "Cardinal Directions",
+      relative: "Relative Directions",
+      spatial: "Spatial Directions"
+    },
+
+    lengthUnits: {
+      meter: "Meter",
+      centimeter: "Centimeter",
+      millimeter: "Millimeter",
+      kilometer: "Kilometer",
+      inch: "Inch",
+      foot: "Foot",
+      yard: "Yard"
+    },
+
+    newModeDifficulties: {
+      'years-only': "Years Only",
+      'months-only': "Months Only",
+      'days-only': "Days Only",
+      'weekdays-only': "Weekdays Only",
+      'full-dates': "Full Dates",
+      'mixed-time': "Mixed Time",
+      'cardinal-only': "Cardinal Directions Only",
+      'relative-only': "Relative Directions Only",
+      'spatial-only': "Spatial Directions Only",
+      'mixed-directions': "Mixed Directions",
+      'metric-basic': "Basic Metric Units",
+      'metric-advanced': "Advanced Metric Units",
+      'imperial-basic': "Basic Imperial Units",
+      'imperial-advanced': "Advanced Imperial Units",
+      'mixed-units': "Mixed Units"
+    },
+
+    newModeTexts: {
+      selectTimeTypes: "Select Time Types",
+      selectDirectionTypes: "Select Direction Types",
+      selectLengthUnits: "Select Length Units",
+      timeTypeDescription: "Choose which time types to include in the exercise",
+      directionTypeDescription: "Choose which direction types to include in the exercise",
+      lengthUnitDescription: "Choose which length units to include in the exercise",
+      selectedTypes: "Selected Types",
+      playCurrentQuestion: "Play Current Question",
+      replayQuestion: "Replay Question",
+      answerPlaceholder: "Type your answer here...",
+      selectDirection: "Select direction",
+      question: "Question",
+      completed: "Completed",
+      score: "Score"
+    },
+
+    volumeControl: {
+      mute: "Mute",
+      unmute: "Unmute",
+      volumeLevel: "Volume"
+    },
+
+    debug: {
+      voiceTest: "Voice Test",
+      openDebugTools: "Open Debug Tools"
+    },
+
     warnings: {
       noSpeechSupport: "Your browser does not support speech synthesis",
       noVoiceFound: "No appropriate voice found, using default voice",
@@ -809,6 +1229,93 @@ export const TRANSLATIONS: Record<string, Translations> = {
       prefix: "Based on your performance in the range",
       suffix: "accuracy, we recommend practicing",
       allGood: "Excellent mastery of all ranges, you can try a more difficult challenge or mixed practice"
+    },
+
+    enhancedRecommendation: {
+      crossModeAnalysis: {
+        title: "Cross-Mode Analysis",
+        strongestMode: "Strongest Mode",
+        weakestMode: "Weakest Mode",
+        overallProgress: {
+          excellent: "Excellent",
+          good: "Good",
+          average: "Average",
+          needs_improvement: "Needs Improvement"
+        },
+        balanceScore: "Balance Score",
+        diversityScore: "Diversity Score",
+        focusRecommendation: "Recommended Focus Mode"
+      },
+
+      modePerformance: {
+        accuracy: "Accuracy",
+        sessions: "Sessions",
+        questions: "Questions",
+        trend: {
+          improving: "Improving",
+          stable: "Stable",
+          declining: "Declining"
+        },
+        lastPlayed: "Last Played",
+        experience: "Experience"
+      },
+
+      difficultyRecommendation: {
+        title: "Difficulty Recommendation",
+        currentLevel: {
+          beginner: "Beginner",
+          intermediate: "Intermediate",
+          advanced: "Advanced",
+          expert: "Expert"
+        },
+        recommended: "Recommended",
+        confidence: "Confidence",
+        nextMilestone: "Next Milestone",
+        timeToMastery: "Time to Mastery"
+      },
+
+      practiceAnalysis: {
+        title: "Practice Analysis",
+        dailyAverage: "Daily Average",
+        weeklyFrequency: "Weekly Frequency",
+        bestTime: {
+          morning: "Morning",
+          afternoon: "Afternoon",
+          evening: "Evening",
+          night: "Night"
+        },
+        consistency: "Consistency",
+        effectiveness: "Effectiveness",
+        recommendedFrequency: "Recommended Frequency",
+        recommendedDuration: "Recommended Duration",
+        optimalTime: "Optimal Time"
+      },
+
+      suggestions: {
+        immediate: "Immediate Actions",
+        shortTerm: "Short-term Goals",
+        longTerm: "Long-term Goals"
+      },
+
+      dataQuality: {
+        excellent: "Excellent",
+        good: "Good",
+        limited: "Limited",
+        insufficient: "Insufficient"
+      },
+
+      common: {
+        minutes: "minutes",
+        days: "days",
+        weeks: "weeks",
+        sessions: "sessions",
+        accuracy: "accuracy",
+        score: "score",
+        recommended: "recommended",
+        current: "current",
+        target: "target",
+        progress: "progress"
+      }
     },
 
     difficultySelector: {
@@ -938,13 +1445,17 @@ export const TRANSLATIONS: Record<string, Translations> = {
 
     modes: {
       numberDictation: "数字听写",
-      mathDictation: "运算听写"
+      mathDictation: "运算听写",
+      directionDictation: "方位听写",
+      timeDictation: "时间听写",
+      lengthDictation: "长度听写"
     },
 
     operationTypes: "运算类型",
     maxResult: "答案最大值",
     selectAtLeastOneOperation: "请至少选择一种运算类型",
     answerFor: "答案",
+    typeHere: "请输入...",
 
     operations: {
       addition: "加法 (+)",
@@ -954,6 +1465,9 @@ export const TRANSLATIONS: Record<string, Translations> = {
     },
 
     difficulties: {
+      easy: "简单",
+      medium: "中等",
+      hard: "困难",
       "0-9": "0-9",
       "0-16": "0-16（基础数字）",
       "0-20": "0-20",
@@ -1027,6 +1541,76 @@ export const TRANSLATIONS: Record<string, Translations> = {
       'no': '挪威语'
     },
 
+    timeTypes: {
+      year: "年份",
+      month: "月份",
+      day: "日期",
+      weekday: "星期",
+      fullDate: "完整日期"
+    },
+
+    directionTypes: {
+      cardinal: "基本方位",
+      relative: "相对方位",
+      spatial: "空间方位"
+    },
+
+    lengthUnits: {
+      meter: "米",
+      centimeter: "厘米",
+      millimeter: "毫米",
+      kilometer: "公里",
+      inch: "英寸",
+      foot: "英尺",
+      yard: "码"
+    },
+
+    newModeDifficulties: {
+      'years-only': "仅年份",
+      'months-only': "仅月份",
+      'days-only': "仅日期",
+      'weekdays-only': "仅星期",
+      'full-dates': "完整日期",
+      'mixed-time': "混合时间",
+      'cardinal-only': "仅基本方位",
+      'relative-only': "仅相对方位",
+      'spatial-only': "仅空间方位",
+      'mixed-directions': "混合方位",
+      'metric-basic': "基础公制单位",
+      'metric-advanced': "高级公制单位",
+      'imperial-basic': "基础英制单位",
+      'imperial-advanced': "高级英制单位",
+      'mixed-units': "混合单位"
+    },
+
+    newModeTexts: {
+      selectTimeTypes: "选择时间类型",
+      selectDirectionTypes: "选择方位类型",
+      selectLengthUnits: "选择长度单位",
+      timeTypeDescription: "选择练习中包含的时间类型",
+      directionTypeDescription: "选择练习中包含的方位类型",
+      lengthUnitDescription: "选择练习中包含的长度单位",
+      selectedTypes: "已选类型",
+      playCurrentQuestion: "播放当前题目",
+      replayQuestion: "重播题目",
+      answerPlaceholder: "请在此输入答案...",
+      selectDirection: "选择方位",
+      question: "题目",
+      completed: "完成",
+      score: "得分"
+    },
+
+    volumeControl: {
+      mute: "静音",
+      unmute: "取消静音",
+      volumeLevel: "音量"
+    },
+
+    debug: {
+      voiceTest: "语音测试",
+      openDebugTools: "打开调试工具"
+    },
+
     warnings: {
       noSpeechSupport: "您的浏览器不支持语音合成",
       noVoiceFound: "未找到合适的语音，使用默认语音",
@@ -1087,6 +1671,93 @@ export const TRANSLATIONS: Record<string, Translations> = {
       prefix: "基于你在",
       suffix: "的准确率，建议选择",
       allGood: "各范围掌握良好，可以尝试更高难度或混合练习"
+    },
+
+    enhancedRecommendation: {
+      crossModeAnalysis: {
+        title: "跨模式分析",
+        strongestMode: "最强模式",
+        weakestMode: "最弱模式",
+        overallProgress: {
+          excellent: "优秀",
+          good: "良好",
+          average: "一般",
+          needs_improvement: "需要改进"
+        },
+        balanceScore: "平衡分数",
+        diversityScore: "多样性分数",
+        focusRecommendation: "建议重点练习模式"
+      },
+
+      modePerformance: {
+        accuracy: "准确率",
+        sessions: "会话数",
+        questions: "题目数",
+        trend: {
+          improving: "进步中",
+          stable: "稳定",
+          declining: "下降中"
+        },
+        lastPlayed: "最后练习",
+        experience: "经验值"
+      },
+
+      difficultyRecommendation: {
+        title: "难度推荐",
+        currentLevel: {
+          beginner: "初学者",
+          intermediate: "中级",
+          advanced: "高级",
+          expert: "专家"
+        },
+        recommended: "推荐",
+        confidence: "置信度",
+        nextMilestone: "下一个里程碑",
+        timeToMastery: "掌握时间"
+      },
+
+      practiceAnalysis: {
+        title: "练习分析",
+        dailyAverage: "日均时长",
+        weeklyFrequency: "周练习频率",
+        bestTime: {
+          morning: "上午",
+          afternoon: "下午",
+          evening: "晚上",
+          night: "深夜"
+        },
+        consistency: "一致性",
+        effectiveness: "有效性",
+        recommendedFrequency: "建议频率",
+        recommendedDuration: "建议时长",
+        optimalTime: "最佳时间"
+      },
+
+      suggestions: {
+        immediate: "立即行动",
+        shortTerm: "短期目标",
+        longTerm: "长期目标"
+      },
+
+      dataQuality: {
+        excellent: "优秀",
+        good: "良好",
+        limited: "有限",
+        insufficient: "不足"
+      },
+
+      common: {
+        minutes: "分钟",
+        days: "天",
+        weeks: "周",
+        sessions: "次会话",
+        accuracy: "准确率",
+        score: "分数",
+        recommended: "推荐",
+        current: "当前",
+        target: "目标",
+        progress: "进度"
+      }
     },
 
     difficultySelector: {

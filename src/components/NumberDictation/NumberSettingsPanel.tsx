@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLanguage } from '../../hooks/useLanguage';
 import { ExerciseSettings } from '../../types/exercise';
 import { GameDataManager, RecommendationResult } from '../../utils/gameData';
-import { DifficultySelector } from '../DifficultySelector';
 import { ConfirmModal } from '../ConfirmModal';
+import { DifficultySelector } from '../DifficultySelector';
+import './EnhancedRecommendation.css';
 
 interface NumberSettingsPanelProps {
   onStart: (settings: ExerciseSettings) => void;
@@ -16,13 +17,33 @@ export const NumberSettingsPanel: React.FC<NumberSettingsPanelProps> = ({ onStar
   const [customMin, setCustomMin] = useState(0);
   const [customMax, setCustomMax] = useState(9999);
   const [recommendation, setRecommendation] = useState<RecommendationResult>({ text: '', recommendedRange: '' });
+  const [enhancedRecommendation, setEnhancedRecommendation] = useState<any>(null);
   const [showClearStatsModal, setShowClearStatsModal] = useState(false);
+  const [RecommendationComponent, setRecommendationComponent] = useState<any>(null);
 
   // 加载智能推荐
   useEffect(() => {
-    const numberStats = GameDataManager.loadNumberStats();
-    const rec = GameDataManager.getRecommendation(numberStats, translations);
-    setRecommendation(rec);
+    const loadRecommendations = async () => {
+      try {
+        // 加载传统推荐（向后兼容）
+        const numberStats = GameDataManager.loadNumberStats();
+        const rec = GameDataManager.getRecommendation(numberStats, translations);
+        setRecommendation(rec);
+
+        // 加载增强推荐
+        const { gameDataManager } = await import('../../utils/game/data-manager');
+        const enhancedRec = await gameDataManager.generateEnhancedRecommendation();
+        setEnhancedRecommendation(enhancedRec);
+
+        // 动态加载推荐显示组件
+        const { EnhancedRecommendationDisplay } = await import('../EnhancedRecommendationDisplay');
+        setRecommendationComponent(() => EnhancedRecommendationDisplay);
+      } catch (error) {
+        console.error('Failed to load recommendations:', error);
+      }
+    };
+
+    loadRecommendations();
   }, [translations]);
 
   // 清空准确率记录
@@ -64,6 +85,7 @@ export const NumberSettingsPanel: React.FC<NumberSettingsPanelProps> = ({ onStar
 
   return (
     <div className="settings-panel">
+      {/* 传统推荐横幅 */}
       {recommendation.text && (
         <div className="recommendation-banner">
           <div className="recommendation-text">
@@ -79,6 +101,13 @@ export const NumberSettingsPanel: React.FC<NumberSettingsPanelProps> = ({ onStar
           </button>
         </div>
       )}
+
+      {/* 增强推荐信息 */}
+      {RecommendationComponent && React.createElement(RecommendationComponent, {
+        recommendation: enhancedRecommendation,
+        currentMode: "number" as const,
+        isLoading: !enhancedRecommendation
+      })}
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="difficulty">{translations.difficulty}</label>
@@ -86,6 +115,8 @@ export const NumberSettingsPanel: React.FC<NumberSettingsPanelProps> = ({ onStar
             value={rangeKey}
             onChange={setRangeKey}
             recommendedRange={recommendation.recommendedRange}
+            enhancedRecommendation={enhancedRecommendation}
+            currentMode="number"
           />
         </div>
 

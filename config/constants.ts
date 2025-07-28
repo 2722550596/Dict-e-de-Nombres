@@ -3,17 +3,49 @@
  * 统一管理所有硬编码的常量值
  */
 
+// ==================== 新模式统计默认值（8.1新增） ====================
+// 注意：由于循环依赖问题，这里直接定义默认值而不是导入函数
+const createDefaultTimeDictationStats = () => ({
+  totalSessions: 0,
+  totalCorrect: 0,
+  totalQuestions: 0,
+  bestAccuracy: 0,
+  averageAccuracy: 0,
+  favoriteTimeType: 'year',
+  timeTypeStats: {},
+});
+
+const createDefaultDirectionDictationStats = () => ({
+  totalSessions: 0,
+  totalCorrect: 0,
+  totalQuestions: 0,
+  bestAccuracy: 0,
+  averageAccuracy: 0,
+  favoriteDirectionType: 'cardinal',
+  directionTypeStats: {},
+});
+
+const createDefaultLengthDictationStats = () => ({
+  totalSessions: 0,
+  totalCorrect: 0,
+  totalQuestions: 0,
+  bestAccuracy: 0,
+  averageAccuracy: 0,
+  favoriteUnit: '米',
+  unitStats: {},
+});
+
 // ==================== 存储相关常量 ====================
 export const STORAGE_KEYS = {
   // 用户数据
   USER_DATA: 'frenchNumbers_userData',
   NUMBER_STATS: 'frenchNumbers_numberStats',
-  
+
   // 系统设置
   SELECTED_LANGUAGE: 'selectedLanguage',
   SOUND_EFFECTS_ENABLED: 'soundEffectsEnabled',
   VOLUME_LEVEL: 'volumeLevel',
-  
+
   // 迁移和备份
   BACKUP: 'frenchNumbers_backup',
   MIGRATION_LOG: 'frenchNumbers_migrationLog',
@@ -31,7 +63,7 @@ export const TIMING = {
     BUTTON_HOVER: 300,
     TRANSITION_SMOOTH: 200,
   },
-  
+
   // 延迟时间 (毫秒)
   DELAY: {
     MODAL_SHOW: 600,
@@ -43,7 +75,7 @@ export const TIMING = {
     AUDIO_START: 200,
     INPUT_NAVIGATION: 150,
   },
-  
+
   // 音频相关时间
   AUDIO: {
     SLOT_MACHINE_INTERVAL: 100,
@@ -55,7 +87,7 @@ export const TIMING = {
 export const GAME_CONFIG = {
   // 分页设置
   ITEMS_PER_PAGE: 20,
-  
+
   // 经验值计算
   EXPERIENCE: {
     BASE_EXP: 5,
@@ -66,7 +98,7 @@ export const GAME_CONFIG = {
       '÷': 4,
     },
   },
-  
+
   // 等级系统
   LEVEL_SYSTEM: {
     VERSION: 2,
@@ -74,7 +106,7 @@ export const GAME_CONFIG = {
     BASE_EXPERIENCE: 100,
     EXPERIENCE_MULTIPLIER: 1.2,
   },
-  
+
   // 默认用户数据
   DEFAULT_USER_DATA: {
     level: 1,
@@ -84,6 +116,11 @@ export const GAME_CONFIG = {
     totalQuestions: 0,
     totalCorrect: 0,
     maxStreak: 0,
+    // 新模式统计默认值（8.1新增）
+    timeDictationStats: createDefaultTimeDictationStats(),
+    directionDictationStats: createDefaultDirectionDictationStats(),
+    lengthDictationStats: createDefaultLengthDictationStats(),
+    newModesDataVersion: 1,
   },
 } as const;
 
@@ -97,14 +134,14 @@ export const UI_CONFIG = {
     BORDER_RADIUS: 24,
     PADDING: 24,
   },
-  
+
   // 响应式断点
   BREAKPOINTS: {
     MOBILE: 480,
     TABLET: 768,
     DESKTOP: 1024,
   },
-  
+
   // Z-index 层级
   Z_INDEX: {
     MODAL_OVERLAY: 1500,
@@ -112,7 +149,7 @@ export const UI_CONFIG = {
     TOOLTIP: 1000,
     DROPDOWN: 500,
   },
-  
+
   // 网格布局
   GRID: {
     ITEMS_PER_ROW: 10,
@@ -124,7 +161,7 @@ export const UI_CONFIG = {
 export const AUDIO_CONFIG = {
   // 默认音量
   DEFAULT_VOLUME: 0.7,
-  
+
   // 音效配置
   SOUND_EFFECTS: {
     success: { frequency: 800, duration: 0.2, type: 'sine', volume: 0.3 },
@@ -148,14 +185,14 @@ export const VALIDATION = {
     MIN: 0,
     MAX: 9999,
   },
-  
+
   // 输入限制
   INPUT: {
     MAX_LENGTH: 4,
     MIN_QUESTIONS: 1,
     MAX_QUESTIONS: 200,
   },
-  
+
   // 准确率阈值
   ACCURACY_THRESHOLDS: {
     PERFECT: 1.0,
@@ -181,7 +218,7 @@ export const STYLE_CONFIG = {
     BORDER: '#cbd5e1',
     BORDER_FOCUS: '#60a5fa',
   },
-  
+
   // 字体
   FONTS: {
     FAMILY: "'Poppins', sans-serif",
@@ -194,7 +231,7 @@ export const STYLE_CONFIG = {
       BLACK: 900,
     },
   },
-  
+
   // 阴影
   SHADOWS: {
     SMALL: '0 1px 2px 0 rgb(0 0 0 / 0.05)',

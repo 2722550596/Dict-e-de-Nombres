@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { DictationLanguageProvider } from './src/components/DictationLanguageProvider';
+import { DirectionSettingsPanel } from './src/components/DirectionDictation/DirectionSettingsPanel';
 import { DynamicSubtitle, DynamicTitle } from './src/components/DynamicTitle';
 import { GameHUD } from './src/components/GameHUD';
 import { LanguageProvider } from './src/components/LanguageProvider';
 import { LanguageSelector } from './src/components/LanguageSelector';
+import { LengthSettingsPanel } from './src/components/LengthDictation/LengthSettingsPanel';
 import { MathSettingsPanel } from './src/components/MathDictation/MathSettingsPanel';
 import { ModeSelector } from './src/components/ModeSelector';
 import { NumberSettingsPanel } from './src/components/NumberDictation/NumberSettingsPanel';
 import { PracticePanel } from './src/components/PracticePanel';
+import { TimeSettingsPanel } from './src/components/TimeDictation/TimeSettingsPanel';
 import { VolumeControl } from './src/components/VolumeControl';
 import { useGlobalAudioEffects } from './src/hooks/useGlobalAudioEffects';
 import './src/styles/DynamicTitle.css';
@@ -42,6 +45,14 @@ const AppContent = () => {
     playInteractionSound('navigation');
   };
 
+  const handleModeChange = (mode: ExerciseMode) => {
+    // 清理之前模式的状态和数据
+    setSettings(null);
+    setView('settings');
+    setSelectedMode(mode);
+    playInteractionSound('click');
+  };
+
   const renderSettingsPanel = () => {
     return (
       <div className="settings-panel-container">
@@ -50,6 +61,15 @@ const AppContent = () => {
         </div>
         <div className={`settings-panel-wrapper ${selectedMode === 'math' ? 'active' : 'hidden'}`}>
           <MathSettingsPanel onStart={handleStartPractice} />
+        </div>
+        <div className={`settings-panel-wrapper ${selectedMode === 'direction' ? 'active' : 'hidden'}`}>
+          <DirectionSettingsPanel onStart={handleStartPractice} />
+        </div>
+        <div className={`settings-panel-wrapper ${selectedMode === 'time' ? 'active' : 'hidden'}`}>
+          <TimeSettingsPanel onStart={handleStartPractice} />
+        </div>
+        <div className={`settings-panel-wrapper ${selectedMode === 'length' ? 'active' : 'hidden'}`}>
+          <LengthSettingsPanel onStart={handleStartPractice} />
         </div>
       </div>
     );
@@ -80,7 +100,7 @@ const AppContent = () => {
           <DynamicSubtitle />
           <ModeSelector
             selectedMode={selectedMode}
-            onModeChange={setSelectedMode}
+            onModeChange={handleModeChange}
           />
           {renderSettingsPanel()}
         </>

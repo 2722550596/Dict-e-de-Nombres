@@ -10,9 +10,12 @@ import { generateMathProblems } from '../utils/mathOperations';
 import { generateNumbers } from '../utils/numberGeneration';
 import { AudioControls } from './AudioControls';
 import { ConfirmModal } from './ConfirmModal';
+import { DirectionDictationPanel } from './DirectionDictationPanel';
+import { LengthDictationPanel } from './LengthDictationPanel';
 import { PracticeGrid } from './PracticeGrid';
 import { RestartModal } from './RestartModal';
 import { RewardModal } from './RewardModal';
+import { TimeDictationPanel } from './TimeDictationPanel';
 
 const ITEMS_PER_PAGE = 50;
 
@@ -23,6 +26,20 @@ interface PracticePanelProps {
 
 export const PracticePanel: React.FC<PracticePanelProps> = ({ settings, onReset }) => {
   const { translations } = useLanguage();
+
+  // Use specialized panels for new dictation modes
+  if (settings.mode === 'direction') {
+    return <DirectionDictationPanel settings={settings} onReset={onReset} />;
+  }
+
+  if (settings.mode === 'time') {
+    return <TimeDictationPanel settings={settings} onReset={onReset} />;
+  }
+
+  if (settings.mode === 'length') {
+    return <LengthDictationPanel settings={settings} onReset={onReset} />;
+  }
+  
   const [exercise, setExercise] = useState<Exercise | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);

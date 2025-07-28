@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试新模式</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #f5f5f5;
+        }
+        .test-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: bold;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        .checklist li:before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: bold;
+        }
+        .link-button {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+            transition: background-color 0.2s;
+        }
+        .link-button:hover {
+            background-color: #0056b3;
+        }
+        .code {
+            background-color: #f8f9fa;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 时间和长度听写模式测试</h1>
+    
+    <div class="test-card">
+        <h2>✅ 修复完成</h2>
+        <p><span class="status success">已解决</span> TimeSettingsPanel 导入错误</p>
+        
+        <h3>修复内容：</h3>
+        <ul class="checklist">
+            <li>在 <span class="code">index.tsx</span> 中正确导入了 <span class="code">TimeSettingsPanel</span></li>
+            <li>在 <span class="code">LengthSettingsPanel.tsx</span> 中添加了 CSS 导入</li>
+            <li>重启了开发服务器以清除缓存</li>
+            <li>验证了所有组件的导出和导入路径</li>
+        </ul>
+    </div>
+
+    <div class="test-card">
+        <h2>🚀 现在可以测试的功能</h2>
+        
+        <h3>新增的听写模式：</h3>
+        <ul class="checklist">
+            <li><strong>时间听写</strong> - 支持年份、月份、日期、星期、完整日期</li>
+            <li><strong>长度听写</strong> - 支持公制和英制单位，可配置数值范围</li>
+        </ul>
+
+        <h3>界面功能：</h3>
+        <ul class="checklist">
+            <li>模式选择器显示5个选项卡</li>
+            <li>每个模式都有专门的设置面板</li>
+            <li>支持三种语言的界面翻译</li>
+            <li>完整的练习流程（设置→练习→结果）</li>
+        </ul>
+    </div>
+
+    <div class="test-card">
+        <h2>🔗 测试链接</h2>
+        <p>点击下面的链接开始测试：</p>
+        
+        <a href="http://localhost:5173/" class="link-button" target="_blank">
+            🎮 打开主应用
+        </a>
+        
+        <a href="http://localhost:5173/" class="link-button" target="_blank">
+            📱 在新标签页中打开
+        </a>
+    </div>
+
+    <div class="test-card">
+        <h2>📋 测试步骤</h2>
+        <ol>
+            <li><strong>检查模式选择器</strong>
+                <ul>
+                    <li>应该看到5个选项卡：数字听写、运算听写、方位听写、时间听写、长度听写</li>
+                </ul>
+            </li>
+            <li><strong>测试时间听写</strong>
+                <ul>
+                    <li>点击"时间听写"选项卡</li>
+                    <li>配置时间类型和数量</li>
+                    <li>点击"开始练习"</li>
+                </ul>
+            </li>
+            <li><strong>测试长度听写</strong>
+                <ul>
+                    <li>点击"长度听写"选项卡</li>
+                    <li>选择长度单位（公制/英制）</li>
+                    <li>设置数值范围</li>
+                    <li>点击"开始练习"</li>
+                </ul>
+            </li>
+            <li><strong>测试多语言</strong>
+                <ul>
+                    <li>切换界面语言（右上角）</li>
+                    <li>验证新模式名称正确翻译</li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+
+    <div class="test-card">
+        <h2>🐛 如果仍有问题</h2>
+        <p>如果页面仍然无法加载，请尝试：</p>
+        <ol>
+            <li><strong>硬刷新浏览器</strong>：按 <span class="code">Ctrl+Shift+R</span> (Windows) 或 <span class="code">Cmd+Shift+R</span> (Mac)</li>
+            <li><strong>清除浏览器缓存</strong>：在开发者工具中右键刷新按钮选择"清空缓存并硬性重新加载"</li>
+            <li><strong>检查控制台</strong>：按 <span class="code">F12</span> 打开开发者工具查看错误信息</li>
+            <li><strong>重启开发服务器</strong>：在终端中按 <span class="code">Ctrl+C</span> 然后运行 <span class="code">npm run dev</span></li>
+        </ol>
+    </div>
+
+    <script>
+        // 检查开发服务器是否运行
+        fetch('http://localhost:5173/')
+            .then(response => {
+                if (response.ok) {
+                    console.log('✅ 开发服务器正在运行');
+                } else {
+                    console.log('⚠️ 开发服务器响应异常');
+                }
+            })
+            .catch(error => {
+                console.log('❌ 无法连接到开发服务器:', error);
+                alert('⚠️ 开发服务器似乎没有运行。请确保在终端中运行了 "npm run dev"');
+            });
+    </script>
+</body>
+</html>

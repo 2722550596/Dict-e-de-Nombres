@@ -187,11 +187,30 @@ export class MigrationSystem {
    */
   static needsMigration(userData: UserData): boolean {
     // 检查是否有版本字段
-    const userDataWithVersion = userData as UserData & { levelSystemVersion?: number };
+    const userDataWithVersion = userData as UserData & {
+      levelSystemVersion?: number;
+      newModesDataVersion?: number;
+    };
 
     // 如果没有版本字段或版本低于当前版本，需要迁移
-    return !userDataWithVersion.levelSystemVersion ||
+    const needsLevelMigration = !userDataWithVersion.levelSystemVersion ||
       userDataWithVersion.levelSystemVersion < LEVEL_SYSTEM_CONFIG.version;
+
+    // 检查是否需要新模式数据迁移（8.1新增）
+    const needsNewModesMigration = !userDataWithVersion.newModesDataVersion ||
+      userDataWithVersion.newModesDataVersion < 1;
+
+    return needsLevelMigration || needsNewModesMigration;
+  }
+
+  /**
+   * 检查是否需要新模式数据迁移（8.1新增）
+   * @param userData 用户数据
+   * @returns 是否需要新模式数据迁移
+   */
+  static needsNewModesMigration(userData: UserData): boolean {
+    const userDataWithVersion = userData as UserData & { newModesDataVersion?: number };
+    return !userDataWithVersion.newModesDataVersion || userDataWithVersion.newModesDataVersion < 1;
   }
 
   /**
@@ -309,5 +328,149 @@ export class MigrationSystem {
       lastMigration,
       hasBackup
     };
+  }
+
+  /**
+   * 执行新模式数据迁移（8.1新增）
+   * @param userData 当前用户数据
+   * @returns 迁移结果
+   */
+  static migrateNewModesData(userData: UserData): { success: boolean; userData: UserData; error?: string } {
+    const migrationDate = new Date().toISOString();
+
+    try {
+      // 创建备份
+      const backupResult = this.createBackup(userData);
+      if (!backupResult.success) {
+        return {
+          success: false,
+          userData,
+          error: `Backup failed: ${backupResult.error}`
+        };
+      }
+
+      // 创建更新后的用户数据
+      const updatedUserData: UserData = {
+        ...userData,
+        // 添加新模式统计字段（如果不存在）
+        timeDictationStats: userData.timeDictationStats || {
+          totalSessions: 0,
+          totalCorrect: 0,
+          totalQuestions: 0,
+          bestAccuracy: 0,
+          averageAccuracy: 0,
+          favoriteTimeType: 'year',
+          timeTypeStats: {},
+        },
+        directionDictationStats: userData.directionDictationStats || {
+          totalSessions: 0,
+          totalCorrect: 0,
+          totalQuestions: 0,
+          bestAccuracy: 0,
+          averageAccuracy: 0,
+          favoriteDirectionType: 'cardinal',
+          directionTypeStats: {},
+        },
+        lengthDictationStats: userData.lengthDictationStats || {
+          totalSessions: 0,
+          totalCorrect: 0,
+          totalQuestions: 0,
+          bestAccuracy: 0,
+          averageAccuracy: 0,
+          favoriteUnit: '米',
+          unitStats: {},
+        },
+        // 更新版本号
+        newModesDataVersion: 1,
+        migrationDate,
+      };
+
+      this.logMigration('migrate', true,
+        `New modes data migration completed successfully`);
+
+      return {
+        success: true,
+        userData: updatedUserData
+      };
+
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      this.logMigration('migrate', false, 'New modes data migration failed', errorMsg);
+
+      return {
+        success: false,
+        userData,
+        error: errorMsg
+      };
+    }
+  }
+
+  /**
+   * 执行完整的数据迁移（包括等级系统和新模式数据）
+   * @param userData 当前用户数据
+   * @returns 迁移结果
+   */
+  static migrateAllData(userData: UserData): { success: boolean; userData: UserData; error?: string } {
+    try {
+      let currentUserData = { ...userData };
+      let migrationPerformed = false;
+
+      // 检查是否需要等级系统迁移
+      if (this.needsMigration(userData) && !this.needsNewModesMigration(userData)) {
+        const levelMigrationResult = this.migrateUserLevel(currentUserData);
+        if (!levelMigrationResult.success) {
+          return {
+            success: false,
+            userData: currentUserData,
+            error: levelMigrationResult.error
+          };
+        }
+
+        // 更新用户数据
+        currentUserData = {
+          ...currentUserData,
+          level: levelMigrationResult.newLevel,
+          experience: levelMigrationResult.adjustedExperience,
+          bonusExperience: levelMigrationResult.bonusExperience,
+          levelSystemVersion: LEVEL_SYSTEM_CONFIG.version,
+          migrationDate: levelMigrationResult.migrationDate,
+        };
+        migrationPerformed = true;
+      }
+
+      // 检查是否需要新模式数据迁移
+      if (this.needsNewModesMigration(currentUserData)) {
+        const newModesMigrationResult = this.migrateNewModesData(currentUserData);
+        if (!newModesMigrationResult.success) {
+          return {
+            success: false,
+            userData: currentUserData,
+            error: newModesMigrationResult.error
+          };
+        }
+
+        currentUserData = newModesMigrationResult.userData;
+        migrationPerformed = true;
+      }
+
+      if (migrationPerformed) {
+        this.logMigration('migrate', true, 'Complete data migration successful');
+      }
+
+      return {
+        success: true,
+        userData: currentUserData
+      };
+
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      this.logMigration('migrate', false, 'Complete data migration failed', errorMsg);
+
+      return {
+        success: false,
+        userData,
+        error: errorMsg
+      };
+    }
   }
 }

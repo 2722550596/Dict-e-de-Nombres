@@ -3,10 +3,10 @@
  * 统一管理用户数据的加载、更新和错误处理
  */
 
-import { useState, useEffect, useRef } from 'react';
-import { GameDataManager } from '../utils/gameData';
-import type { UserData } from '../types';
+import { useEffect, useRef, useState } from 'react';
 import { CONFIG } from '../../config';
+import type { UserData } from '../types';
+import { GameDataManager } from '../utils/gameData';
 
 // 默认用户数据
 const createDefaultUserData = (): UserData => ({
@@ -18,6 +18,35 @@ const createDefaultUserData = (): UserData => ({
   totalQuestions: 0,
   totalCorrect: 0,
   maxStreak: 0,
+  // 新模式统计默认值（8.1新增）
+  timeDictationStats: {
+    totalSessions: 0,
+    totalCorrect: 0,
+    totalQuestions: 0,
+    bestAccuracy: 0,
+    averageAccuracy: 0,
+    favoriteTimeType: 'year',
+    timeTypeStats: {},
+  },
+  directionDictationStats: {
+    totalSessions: 0,
+    totalCorrect: 0,
+    totalQuestions: 0,
+    bestAccuracy: 0,
+    averageAccuracy: 0,
+    favoriteDirectionType: 'cardinal',
+    directionTypeStats: {},
+  },
+  lengthDictationStats: {
+    totalSessions: 0,
+    totalCorrect: 0,
+    totalQuestions: 0,
+    bestAccuracy: 0,
+    averageAccuracy: 0,
+    favoriteUnit: '米',
+    unitStats: {},
+  },
+  newModesDataVersion: 1,
 });
 
 // 经验进度接口
@@ -73,7 +102,7 @@ export const useUserData = (options: UseUserDataOptions = {}): UseUserDataReturn
     try {
       setError(null);
       const data = GameDataManager.loadUserData();
-      
+
       // 数据验证
       if (!data || typeof data.level !== 'number') {
         throw new Error('Invalid user data structure');
@@ -95,7 +124,7 @@ export const useUserData = (options: UseUserDataOptions = {}): UseUserDataReturn
     setIsLoading(true);
     try {
       const newData = await loadUserData();
-      
+
       // 等级提升检测
       if (enableLevelUpDetection && previousLevelRef.current > 0) {
         if (newData.level > previousLevelRef.current) {
@@ -104,7 +133,7 @@ export const useUserData = (options: UseUserDataOptions = {}): UseUserDataReturn
           setTimeout(() => setIsLevelingUp(false), CONFIG.TIMING.ANIMATION.CELEBRATION);
         }
       }
-      
+
       previousLevelRef.current = newData.level;
       setUserData(newData);
     } finally {
@@ -118,7 +147,7 @@ export const useUserData = (options: UseUserDataOptions = {}): UseUserDataReturn
   const calculateExpProgress = (userData: UserData): ExperienceProgress => {
     try {
       const progress = GameDataManager.getExperienceProgress(userData.experience);
-      
+
       // 安全检查和数据清理
       return {
         level: Math.max(1, progress.level || 1),

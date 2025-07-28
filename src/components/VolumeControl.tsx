@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { getSoundVolume, setSoundVolume, isSoundMuted, toggleSoundMute, playSound } from '../utils/audioEffects';
+import React, { useEffect, useRef, useState } from 'react';
+import { getSoundVolume, isSoundMuted, playSound, setSoundVolume, toggleSoundMute } from '../utils/audioEffects';
 
 // SVG音量图标组件
 const VolumeOffIcon = () => (
@@ -75,7 +75,7 @@ export const VolumeControl: React.FC = () => {
     setSoundVolume(newVolume);
     setVolume(newVolume);
     setIsMuted(newVolume === 0);
-    
+
     // 播放音效预览
     if (newVolume > 0) {
       playSound('click');
@@ -111,8 +111,8 @@ export const VolumeControl: React.FC = () => {
   const volumePercentage = Math.round(volume * 100);
 
   return (
-    <div 
-      className="volume-control" 
+    <div
+      className="volume-control"
       ref={containerRef}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -124,7 +124,7 @@ export const VolumeControl: React.FC = () => {
       >
         {getVolumeIcon()}
       </button>
-      
+
       {showSlider && (
         <div className="volume-slider-container">
           <input

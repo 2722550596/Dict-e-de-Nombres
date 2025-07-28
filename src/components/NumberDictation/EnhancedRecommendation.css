@@ -1,0 +1,319 @@
+/* 增强推荐系统样式 */
+
+.enhanced-recommendation {
+  background: linear-gradient(135deg, #f8f9ff 0%, #e8f2ff 100%);
+  border: 2px solid #e1e8ff;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 16px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.enhanced-recommendation-header {
+  margin-bottom: 16px;
+}
+
+.enhanced-recommendation-header h3 {
+  margin: 0;
+  color: #2563eb;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* 主要推荐 */
+.primary-recommendation {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.primary-recommendation .recommendation-text {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+.primary-recommendation .recommendation-reason {
+  font-size: 14px;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* 跨模式分析 */
+.cross-mode-analysis {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.cross-mode-analysis h4 {
+  margin: 0 0 12px 0;
+  color: #374151;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.mode-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.stat-label {
+  font-weight: 500;
+  color: #374151;
+  font-size: 14px;
+}
+
+.stat-value {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 14px;
+}
+
+/* 练习建议 */
+.practice-suggestions {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.practice-suggestions h4 {
+  margin: 0 0 16px 0;
+  color: #374151;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.suggestion-group {
+  margin-bottom: 16px;
+}
+
+.suggestion-group:last-child {
+  margin-bottom: 0;
+}
+
+.suggestion-group h5 {
+  margin: 0 0 8px 0;
+  color: #4b5563;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.suggestion-group ul {
+  margin: 0;
+  padding-left: 20px;
+  list-style-type: none;
+}
+
+.suggestion-group li {
+  position: relative;
+  padding: 4px 0;
+  color: #374151;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.suggestion-group li::before {
+  content: "•";
+  color: #6366f1;
+  font-weight: bold;
+  position: absolute;
+  left: -16px;
+}
+
+/* 练习分析 */
+.practice-analysis {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.practice-analysis h4 {
+  margin: 0 0 12px 0;
+  color: #374151;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.analysis-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.practice-recommendations {
+  background: #f9fafb;
+  border-radius: 6px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.practice-recommendations p {
+  margin: 6px 0;
+  font-size: 14px;
+  color: #374151;
+}
+
+.practice-recommendations strong {
+  color: #1f2937;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .enhanced-recommendation {
+    padding: 16px;
+    margin: 12px 0;
+  }
+  
+  .mode-stats,
+  .analysis-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .stat-item {
+    padding: 6px 10px;
+  }
+  
+  .enhanced-recommendation-header h3 {
+    font-size: 16px;
+  }
+  
+  .cross-mode-analysis h4,
+  .practice-suggestions h4,
+  .practice-analysis h4 {
+    font-size: 14px;
+  }
+}
+
+/* 数据质量指示器 */
+.data-quality-indicator {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-left: 8px;
+}
+
+.data-quality-excellent {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.data-quality-good {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.data-quality-limited {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.data-quality-insufficient {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* 动画效果 */
+.enhanced-recommendation {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 加载状态 */
+.recommendation-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.recommendation-loading::before {
+  content: "";
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e5e7eb;
+  border-top: 2px solid #6366f1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 推荐置信度 */
+.recommendation-confidence {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* 推荐元数据 */
+.recommendation-meta {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+  text-align: center;
+}
+
+.recommendation-meta small {
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+/* 模式特定推荐 */
+.mode-specific-recommendation {
+  margin-bottom: 16px;
+}
+
+/* 改进的统计项样式 */
+.stat-item.highlight {
+  background: #f0f9ff;
+  border-color: #0ea5e9;
+}
+
+.stat-item.warning {
+  background: #fffbeb;
+  border-color: #f59e0b;
+}
+
+.stat-item.success {
+  background: #f0fdf4;
+  border-color: #10b981;
+}

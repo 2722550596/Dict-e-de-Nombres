@@ -31,7 +31,7 @@ export interface DifficultyStats {
 }
 
 export interface GameSession {
-  mode: 'number' | 'math';
+  mode: 'number' | 'math' | 'time' | 'direction' | 'length';
   difficulty: string;
   score: number;
   accuracy: number;
@@ -49,25 +49,25 @@ export interface PlayerData {
   level: number;
   experience: number;
   experienceToNext: number;
-  
+
   // 总体统计
   stats: PlayerStats;
-  
+
   // 当前游戏状态
   currentStreak: number;
   longestStreak: number;
   currentScore: number;
-  
+
   // 难度相关
   difficultyStats: DifficultyStats;
-  
+
   // 成就系统
   achievements: Achievement[];
   unlockedAchievements: string[];
-  
+
   // 游戏历史
   recentSessions: GameSession[];
-  
+
   // 设置
   preferences: {
     soundEnabled: boolean;
