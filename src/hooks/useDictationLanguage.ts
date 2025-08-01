@@ -59,6 +59,19 @@ export const useDictationLanguageProvider = () => {
     console.log('Dictation language changed to:', currentDictationLanguage.name);
   }, [currentDictationLanguage]);
 
+  useEffect(() => {
+    // 监听localStorage变化，支持从其他页面同步听写语言设置
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'selectedDictationLanguage' && e.newValue && SUPPORTED_DICTATION_LANGUAGES.find(lang => lang.code === e.newValue)) {
+        console.log('Dictation language changed from external source:', e.newValue);
+        setCurrentDictationLanguageCode(e.newValue);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   return {
     currentDictationLanguage,
     changeDictationLanguage,

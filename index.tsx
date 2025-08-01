@@ -9,6 +9,7 @@ import { MathSettingsPanel } from './src/components/MathDictation/MathSettingsPa
 import { ModeSelector } from './src/components/ModeSelector';
 import { NumberSettingsPanel } from './src/components/NumberDictation/NumberSettingsPanel';
 import { PracticePanel } from './src/components/PracticePanel';
+import { Router } from './src/components/Router';
 import { VolumeControl } from './src/components/VolumeControl';
 import { useGlobalAudioEffects } from './src/hooks/useGlobalAudioEffects';
 import './src/styles/DynamicTitle.css';
@@ -65,8 +66,8 @@ const AppContent = () => {
             <VolumeControl />
             <button
               className="debug-button"
-              onClick={() => window.open('./debug/voice-test.html', '_blank')}
-              title="Debug Voice Test"
+              onClick={() => (window as any).navigateTo?.('/voice-test')}
+              title="Voice Test"
             >
               <DebugIcon />
             </button>
@@ -96,8 +97,10 @@ const App = () => {
   return (
     <LanguageProvider>
       <DictationLanguageProvider>
-        <GameHUD />
-        <AppContent />
+        <Router>
+          <GameHUD />
+          <AppContent />
+        </Router>
       </DictationLanguageProvider>
     </LanguageProvider>
   );

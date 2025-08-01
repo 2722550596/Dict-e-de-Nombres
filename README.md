@@ -11,6 +11,8 @@ A French number dictation web application designed to help learners improve thei
 - **Instant Feedback**: Color-coded results showing correct/incorrect answers
 - **Responsive Design**: Works on both desktop and mobile devices
 - **French Speech Synthesis**: Uses browser's built-in French text-to-speech
+- **Voice Test Page**: Dedicated page for testing and configuring speech synthesis voices (`/voice-test`)
+- **Simple Routing**: Client-side routing for seamless navigation between main app and voice test
 
 ## How to Use
 
@@ -18,6 +20,7 @@ A French number dictation web application designed to help learners improve thei
 2. **Practice**: Listen to French numbers and type your answers in the grid
 3. **Submit**: Get instant feedback with correct answers highlighted
 4. **Review**: See your results and start a new session
+5. **Voice Test**: Click the debug icon (🔧) to access the voice test page for configuring speech synthesis
 
 ## Technical Features
 

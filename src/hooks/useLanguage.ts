@@ -50,6 +50,19 @@ export const useLanguageProvider = () => {
     document.documentElement.lang = currentLanguage.code;
   }, [currentLanguage]);
 
+  useEffect(() => {
+    // 监听localStorage变化，支持从其他页面同步语言设置
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'selectedLanguage' && e.newValue && SUPPORTED_LANGUAGES.find(lang => lang.code === e.newValue)) {
+        console.log('Language changed from external source:', e.newValue);
+        setCurrentLanguageCode(e.newValue);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   return {
     currentLanguage,
     translations,

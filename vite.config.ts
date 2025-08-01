@@ -27,6 +27,8 @@ export default defineConfig(({ mode, command }) => {
       rollupOptions: {
         input: {
           main: path.resolve(__dirname, 'index.html'),
+          // 语音测试页面作为正式子页面
+          'voice-test': path.resolve(__dirname, 'voice-test.html'),
           // 包含调试文件到生产构建中
           'debug/voice-test': path.resolve(__dirname, 'debug/voice-test.html'),
           'debug/voice-test-i18n': path.resolve(__dirname, 'debug/voice-test-i18n.html'),
