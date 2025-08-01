@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>经验增长调试工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .button.danger {
+            background: #dc3545;
+        }
+        .button.danger:hover {
+            background: #c82333;
+        }
+        .status {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #007bff; }
+
+        /* 确认模态框样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-title {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .modal-message {
+            margin: 0 0 20px 0;
+            color: #666;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+    </style>
+</head>
+<body>
+    <h1>经验增长调试工具</h1>
+    
+    <div class="container">
+        <h2>当前状态</h2>
+        <div id="currentStatus" class="status">
+            加载中...
+        </div>
+        <button class="button" onclick="refreshStatus()">刷新状态</button>
+    </div>
+
+    <div class="container">
+        <h2>测试操作</h2>
+        <button class="button" onclick="testSimpleSession()">测试简单练习（5题全对）</button>
+        <button class="button" onclick="testMathSession()">测试数学练习（3题全对）</button>
+        <button class="button" onclick="testMixedSession()">测试混合练习（部分对错）</button>
+        <button class="button" onclick="testEmptySession()">测试空答案练习</button>
+        <br>
+        <button class="button danger" onclick="clearUserData()">清空用户数据</button>
+        <button class="button danger" onclick="clearAllData()">清空所有数据</button>
+    </div>
+
+    <div class="container">
+        <h2>操作日志</h2>
+        <div id="logContainer" class="log"></div>
+        <button class="button" onclick="clearLog()">清空日志</button>
+    </div>
+
+    <!-- 确认模态框 -->
+    <div id="confirmModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modalTitle" class="modal-title">确认操作</h3>
+            <p id="modalMessage" class="modal-message">您确定要执行此操作吗？</p>
+            <div class="modal-actions">
+                <button class="button" onclick="cancelConfirm()">取消</button>
+                <button class="button danger" onclick="executeConfirm()">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 模拟GameDataManager的核心功能
+        const STORAGE_KEYS = {
+            USER_DATA: 'frenchNumbers_userData',
+            NUMBER_STATS: 'frenchNumbers_numberStats'
+        };
+
+        const DEFAULT_USER_DATA = {
+            level: 1,
+            experience: 0,
+            totalSessions: 0,
+            todaySessions: 0,
+            lastActiveDate: new Date().toDateString(),
+            totalQuestions: 0,
+            totalCorrect: 0,
+            maxStreak: 0
+        };
+
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+            logContainer.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('logContainer').innerHTML = '';
+        }
+
+        // 确认模态框相关函数
+        let confirmCallback = null;
+
+        function showConfirm(title, message, callback) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            confirmCallback = callback;
+            document.getElementById('confirmModal').classList.add('show');
+        }
+
+        function cancelConfirm() {
+            document.getElementById('confirmModal').classList.remove('show');
+            confirmCallback = null;
+        }
+
+        function executeConfirm() {
+            document.getElementById('confirmModal').classList.remove('show');
+            if (confirmCallback) {
+                confirmCallback();
+                confirmCallback = null;
+            }
+        }
+
+        function loadUserData() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEYS.USER_DATA);
+                if (!saved) {
+                    log('没有找到保存的用户数据，使用默认数据');
+                    return DEFAULT_USER_DATA;
+                }
+                
+                const data = JSON.parse(saved);
+                const today = new Date().toDateString();
+                
+                if (data.lastActiveDate !== today) {
+                    data.todaySessions = 0;
+                    data.lastActiveDate = today;
+                    log('检测到新的一天，重置今日练习次数');
+                }
+                
+                return { ...DEFAULT_USER_DATA, ...data };
+            } catch (error) {
+                log(`加载用户数据失败: ${error.message}`, 'error');
+                return DEFAULT_USER_DATA;
+            }
+        }
+
+        function saveUserData(userData) {
+            try {
+                const jsonData = JSON.stringify(userData);
+                localStorage.setItem(STORAGE_KEYS.USER_DATA, jsonData);
+                log(`用户数据已保存: ${jsonData}`, 'success');
+                return true;
+            } catch (error) {
+                log(`保存用户数据失败: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        function calculateExperience(sessionResults) {
+            const validResults = sessionResults.filter(r => r.userAnswer.trim() !== '');
+            if (validResults.length === 0) {
+                log('没有有效答案，经验值为0');
+                return 0;
+            }
+
+            const correctCount = validResults.filter(r => r.correct).length;
+            const totalCount = validResults.length;
+            let totalExp = 0;
+
+            validResults.forEach(result => {
+                let baseExp = 5;
+                if (result.mode === 'math' && result.operator) {
+                    switch (result.operator) {
+                        case '+': baseExp *= 2.5; break;
+                        case '-': baseExp *= 3.5; break;
+                        case '×':
+                        case '÷': baseExp *= 4; break;
+                    }
+                }
+                if (result.correct) {
+                    totalExp += baseExp;
+                }
+            });
+
+            const accuracy = correctCount / totalCount;
+            const accuracyBonus = Math.floor(accuracy * totalCount * 10);
+            
+            // 简化的连击计算
+            let streak = 0;
+            let currentStreak = 0;
+            sessionResults.forEach(result => {
+                if (result.correct) {
+                    currentStreak++;
+                    streak = Math.max(streak, currentStreak);
+                } else {
+                    currentStreak = 0;
+                }
+            });
+            
+            const streakBonus = streak >= 3 ? Math.floor(streak * 5) : 0;
+            const finalExp = Math.round(totalExp + accuracyBonus + streakBonus);
+            
+            log(`经验计算: 基础=${totalExp}, 准确率奖励=${accuracyBonus}, 连击奖励=${streakBonus}, 总计=${finalExp}`);
+            return finalExp;
+        }
+
+        function calculateLevel(experience) {
+            const safeExperience = Math.max(0, experience);
+            let currentExp = 0;
+            let level = 1;
+            let expForNextLevel = 150;
+
+            while (currentExp + expForNextLevel <= safeExperience) {
+                currentExp += expForNextLevel;
+                level++;
+                expForNextLevel = 150 + (level - 2) * 50;
+                if (level > 100) break;
+            }
+
+            return level;
+        }
+
+        function updateSessionResults(sessionResults) {
+            log(`开始处理练习结果，共${sessionResults.length}题`);
+            
+            const userData = loadUserData();
+            log(`当前用户数据: 等级=${userData.level}, 经验=${userData.experience}`);
+            
+            const validResults = sessionResults.filter(r => r.userAnswer.trim() !== '');
+            const correctCount = validResults.filter(r => r.correct).length;
+            const totalCount = validResults.length;
+            const experience = calculateExperience(sessionResults);
+            
+            const oldLevel = calculateLevel(userData.experience);
+            userData.experience += experience;
+            const newLevel = calculateLevel(userData.experience);
+            userData.level = newLevel;
+            userData.totalSessions += 1;
+            userData.todaySessions += 1;
+            userData.totalQuestions += totalCount;
+            userData.totalCorrect += correctCount;
+            userData.lastActiveDate = new Date().toDateString();
+            
+            log(`更新后数据: 等级=${newLevel} (${oldLevel}→${newLevel}), 经验=${userData.experience} (+${experience})`);
+            
+            const saved = saveUserData(userData);
+            if (saved) {
+                log('练习结果更新成功', 'success');
+            } else {
+                log('练习结果更新失败', 'error');
+            }
+            
+            return {
+                experience,
+                levelUp: newLevel > oldLevel ? { oldLevel, newLevel } : null
+            };
+        }
+
+        function refreshStatus() {
+            const userData = loadUserData();
+            const statusDiv = document.getElementById('currentStatus');
+            
+            statusDiv.innerHTML = `
+                <strong>用户数据:</strong><br>
+                等级: ${userData.level}<br>
+                经验值: ${userData.experience}<br>
+                总练习次数: ${userData.totalSessions}<br>
+                今日练习次数: ${userData.todaySessions}<br>
+                总题目数: ${userData.totalQuestions}<br>
+                总正确数: ${userData.totalCorrect}<br>
+                最长连击: ${userData.maxStreak}<br>
+                最后活跃日期: ${userData.lastActiveDate}<br>
+                <br>
+                <strong>LocalStorage状态:</strong><br>
+                用户数据键: ${STORAGE_KEYS.USER_DATA}<br>
+                数据存在: ${localStorage.getItem(STORAGE_KEYS.USER_DATA) ? '是' : '否'}<br>
+                数据大小: ${localStorage.getItem(STORAGE_KEYS.USER_DATA)?.length || 0} 字符
+            `;
+            
+            log('状态已刷新');
+        }
+
+        function testSimpleSession() {
+            log('=== 开始测试简单练习 ===');
+            const sessionResults = [
+                { number: 15, correct: true, userAnswer: '15', mode: 'number' },
+                { number: 23, correct: true, userAnswer: '23', mode: 'number' },
+                { number: 47, correct: true, userAnswer: '47', mode: 'number' },
+                { number: 89, correct: true, userAnswer: '89', mode: 'number' },
+                { number: 56, correct: true, userAnswer: '56', mode: 'number' }
+            ];
+            
+            const result = updateSessionResults(sessionResults);
+            log(`测试完成，获得经验: ${result.experience}`, 'success');
+            if (result.levelUp) {
+                log(`恭喜升级！${result.levelUp.oldLevel} → ${result.levelUp.newLevel}`, 'success');
+            }
+            refreshStatus();
+        }
+
+        function testMathSession() {
+            log('=== 开始测试数学练习 ===');
+            const sessionResults = [
+                { number: 15, correct: true, userAnswer: '20', mode: 'math', operator: '+' },
+                { number: 30, correct: true, userAnswer: '25', mode: 'math', operator: '-' },
+                { number: 12, correct: true, userAnswer: '36', mode: 'math', operator: '×' }
+            ];
+            
+            const result = updateSessionResults(sessionResults);
+            log(`测试完成，获得经验: ${result.experience}`, 'success');
+            if (result.levelUp) {
+                log(`恭喜升级！${result.levelUp.oldLevel} → ${result.levelUp.newLevel}`, 'success');
+            }
+            refreshStatus();
+        }
+
+        function testMixedSession() {
+            log('=== 开始测试混合练习 ===');
+            const sessionResults = [
+                { number: 15, correct: true, userAnswer: '15', mode: 'number' },
+                { number: 23, correct: false, userAnswer: '32', mode: 'number' },
+                { number: 47, correct: true, userAnswer: '47', mode: 'number' },
+                { number: 89, correct: false, userAnswer: '98', mode: 'number' }
+            ];
+            
+            const result = updateSessionResults(sessionResults);
+            log(`测试完成，获得经验: ${result.experience}`, 'success');
+            refreshStatus();
+        }
+
+        function testEmptySession() {
+            log('=== 开始测试空答案练习 ===');
+            const sessionResults = [
+                { number: 15, correct: false, userAnswer: '', mode: 'number' },
+                { number: 23, correct: false, userAnswer: '  ', mode: 'number' },
+                { number: 47, correct: false, userAnswer: '', mode: 'number' }
+            ];
+            
+            const result = updateSessionResults(sessionResults);
+            log(`测试完成，获得经验: ${result.experience}`, 'success');
+            refreshStatus();
+        }
+
+        function clearUserData() {
+            showConfirm(
+                '清空用户数据',
+                '确定要清空用户数据吗？这将重置等级和经验。',
+                function() {
+                    localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+                    log('用户数据已清空', 'success');
+                    refreshStatus();
+                }
+            );
+        }
+
+        function clearAllData() {
+            showConfirm(
+                '清空所有数据',
+                '确定要清空所有数据吗？这将重置所有游戏进度。',
+                function() {
+                    localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+                    localStorage.removeItem(STORAGE_KEYS.NUMBER_STATS);
+                    log('所有数据已清空', 'success');
+                    refreshStatus();
+                }
+            );
+        }
+
+        // 页面加载时初始化
+        window.onload = function() {
+            log('调试工具已加载');
+            refreshStatus();
+        };
+    </script>
+</body>
+</html>

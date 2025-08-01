@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>动态标题测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .title-preview {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 1rem 0;
+            text-align: center;
+            padding: 20px;
+            border: 2px dashed #3498db;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+        .language-dropdown {
+            font-size: inherit;
+            font-weight: inherit;
+            color: #3498db;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        .language-dropdown:hover {
+            background: rgba(52, 152, 219, 0.1);
+        }
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        select, button {
+            padding: 8px 12px;
+            margin: 5px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>动态标题效果预览</h1>
+    
+    <div class="info">
+        <strong>说明：</strong>这个页面模拟了动态标题的效果。在实际应用中，标题中的语言名称是可点击的下拉菜单。
+    </div>
+
+    <div class="controls">
+        <label>界面语言：</label>
+        <select id="uiLanguage">
+            <option value="fr">Français</option>
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+        </select>
+        
+        <label>听写语言：</label>
+        <select id="dictationLanguage">
+            <option value="fr">法语/French/Français</option>
+            <option value="en">英语/English/Anglais</option>
+            <option value="de">德语/German/Allemand</option>
+            <option value="es">西班牙语/Spanish/Espagnol</option>
+            <option value="it">意大利语/Italian/Italien</option>
+            <option value="pt">葡萄牙语/Portuguese/Portugais</option>
+            <option value="zh">中文/Chinese/Chinois</option>
+            <option value="ja">日语/Japanese/Japonais</option>
+            <option value="ko">韩语/Korean/Coréen</option>
+            <option value="ar">阿拉伯语/Arabic/Arabe</option>
+            <option value="ru">俄语/Russian/Russe</option>
+            <option value="nl">荷兰语/Dutch/Néerlandais</option>
+            <option value="sv">瑞典语/Swedish/Suédois</option>
+            <option value="no">挪威语/Norwegian/Norvégien</option>
+        </select>
+        
+        <button onclick="updatePreview()">更新预览</button>
+    </div>
+
+    <div class="test-section">
+        <h2>标题预览效果</h2>
+        <div id="titlePreview" class="title-preview">
+            <!-- 动态标题将在这里显示 -->
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>不同界面语言的标题模板</h2>
+        <ul>
+            <li><strong>法语界面：</strong> Dictée de Nombres en <span style="color: #3498db; text-decoration: underline;">[语言名称▼]</span></li>
+            <li><strong>英语界面：</strong> <span style="color: #3498db; text-decoration: underline;">[语言名称▼]</span> Number Dictation</li>
+            <li><strong>中文界面：</strong> <span style="color: #3498db; text-decoration: underline;">[语言名称▼]</span>数字听写</li>
+        </ul>
+    </div>
+
+    <script>
+        // 语言名称映射
+        const languageNames = {
+            fr: {
+                fr: 'Français',
+                en: 'Anglais', 
+                de: 'Allemand',
+                es: 'Espagnol',
+                it: 'Italien',
+                pt: 'Portugais',
+                zh: 'Chinois',
+                ja: 'Japonais',
+                ko: 'Coréen',
+                ar: 'Arabe',
+                ru: 'Russe',
+                nl: 'Néerlandais',
+                sv: 'Suédois',
+                no: 'Norvégien'
+            },
+            en: {
+                fr: 'French',
+                en: 'English', 
+                de: 'German',
+                es: 'Spanish',
+                it: 'Italian',
+                pt: 'Portuguese',
+                zh: 'Chinese',
+                ja: 'Japanese',
+                ko: 'Korean',
+                ar: 'Arabic',
+                ru: 'Russian',
+                nl: 'Dutch',
+                sv: 'Swedish',
+                no: 'Norwegian'
+            },
+            zh: {
+                fr: '法语',
+                en: '英语', 
+                de: '德语',
+                es: '西班牙语',
+                it: '意大利语',
+                pt: '葡萄牙语',
+                zh: '中文',
+                ja: '日语',
+                ko: '韩语',
+                ar: '阿拉伯语',
+                ru: '俄语',
+                nl: '荷兰语',
+                sv: '瑞典语',
+                no: '挪威语'
+            }
+        };
+
+        // 标题模板
+        const titleTemplates = {
+            fr: 'Dictée de Nombres en {language}',
+            en: '{language} Number Dictation',
+            zh: '{language}数字听写'
+        };
+
+        function updatePreview() {
+            const uiLang = document.getElementById('uiLanguage').value;
+            const dictationLang = document.getElementById('dictationLanguage').value;
+            
+            const template = titleTemplates[uiLang];
+            const languageName = languageNames[uiLang][dictationLang];
+            
+            // 创建带下拉菜单效果的标题
+            const titleHtml = template.replace('{language}', 
+                `<select class="language-dropdown" onchange="handleLanguageChange(this)">
+                    <option value="${dictationLang}" selected>${languageName}</option>
+                    ${Object.keys(languageNames[uiLang]).map(lang => 
+                        lang !== dictationLang ? 
+                        `<option value="${lang}">${languageNames[uiLang][lang]}</option>` : ''
+                    ).join('')}
+                </select>`
+            );
+            
+            document.getElementById('titlePreview').innerHTML = titleHtml;
+        }
+
+        function handleLanguageChange(select) {
+            document.getElementById('dictationLanguage').value = select.value;
+            updatePreview();
+        }
+
+        // 初始化
+        updatePreview();
+
+        // 监听界面语言变化
+        document.getElementById('uiLanguage').addEventListener('change', updatePreview);
+        document.getElementById('dictationLanguage').addEventListener('change', updatePreview);
+    </script>
+</body>
+</html>

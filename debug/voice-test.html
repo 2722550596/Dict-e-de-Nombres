@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">Test de Voix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .back-button {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .back-button:hover {
+            background: #5a6268;
+        }
+
+        .language-selectors {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .language-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .language-selector label {
+            font-size: 12px;
+            font-weight: bold;
+            color: #666;
+            margin: 0;
+        }
+
+        .language-selector select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            min-width: 150px;
+        }
+
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+
+        .button:hover {
+            background: #0056b3;
+        }
+
+        .button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .button.danger {
+            background: #dc3545;
+        }
+
+        .button.danger:hover {
+            background: #c82333;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            color: #856404;
+            display: none;
+        }
+
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            color: #0c5460;
+            display: none;
+        }
+
+        .voice-list {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .voice-list ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .voice-list li {
+            margin: 5px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .voice-list li.target-language {
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .voice-selector {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 10px 0;
+            width: 100%;
+            max-width: 400px;
+            font-size: 14px;
+        }
+
+        .saved-voice-status {
+            background: #e9ecef;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            display: none;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .controls-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        @media (max-width: 600px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .language-selectors {
+                justify-content: center;
+            }
+
+            .controls-section {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="back-button" onclick="window.close(); window.history.back();">
+                ← <span id="back-text">Retour</span>
+            </button>
+            <h1 id="main-title" style="margin: 0;">Test de Voix</h1>
+            <div class="language-selectors">
+                <div class="language-selector">
+                    <label id="interface-lang-label">Langue de l'interface</label>
+                    <select id="interfaceLanguageSelect">
+                        <option value="fr">🇫🇷 Français</option>
+                        <option value="en">🇺🇸 English</option>
+                        <option value="zh">🇨🇳 中文</option>
+                    </select>
+                </div>
+                <div class="language-selector">
+                    <label id="test-lang-label">Langue de test</label>
+                    <select id="testLanguageSelect">
+                        <!-- Will be populated by JavaScript -->
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div id="warning" class="warning"></div>
+        <div id="info" class="info"></div>
+
+        <div id="savedVoiceStatus" class="saved-voice-status">
+            <strong id="saved-voice-label">Voix sauvegardée actuelle:</strong>
+            <span id="savedVoiceInfo"></span>
+        </div>
+    </div>
+
+    <div class="container">
+        <div>
+            <label for="voiceSelect" id="select-voice-label">Sélectionner une voix:</label>
+            <select id="voiceSelect" class="voice-selector" onchange="onVoiceChange()">
+                <option value="" id="default-voice-option">Voix par défaut</option>
+            </select>
+        </div>
+
+        <div class="controls-section">
+            <button class="button" id="testVoiceBtn" onclick="testSelectedVoice()">Tester la voix sélectionnée</button>
+            <button class="button" id="testAllVoicesBtn" onclick="testAllTargetVoices()">Tester toutes les voix disponibles</button>
+            <button class="button" id="listVoicesBtn" onclick="listVoices()">Lister toutes les voix</button>
+            <button class="button danger" id="clearSavedVoiceBtn" onclick="clearSavedVoice()">Effacer la voix sauvegardée</button>
+        </div>
+
+        <div id="voiceList" class="voice-list"></div>
+    </div>
+
+    <script>
+        // 支持的听写语言（从项目配置复制）
+        const DICTATION_LANGUAGES = [
+            { code: 'fr', name: 'Français', flag: '🇫🇷', speechLang: 'fr-FR' },
+            { code: 'en', name: 'English', flag: '🇺🇸', speechLang: 'en-US' },
+            { code: 'de', name: 'Deutsch', flag: '🇩🇪', speechLang: 'de-DE' },
+            { code: 'es', name: 'Español', flag: '🇪🇸', speechLang: 'es-ES' },
+            { code: 'it', name: 'Italiano', flag: '🇮🇹', speechLang: 'it-IT' },
+            { code: 'pt', name: 'Português', flag: '🇵🇹', speechLang: 'pt-PT' },
+            { code: 'zh', name: '中文', flag: '🇨🇳', speechLang: 'zh-CN' },
+            { code: 'ja', name: '日本語', flag: '🇯🇵', speechLang: 'ja-JP' },
+            { code: 'ko', name: '한국어', flag: '🇰🇷', speechLang: 'ko-KR' },
+            { code: 'ar', name: 'العربية', flag: '🇸🇦', speechLang: 'ar-SA' },
+            { code: 'ru', name: 'Русский', flag: '🇷🇺', speechLang: 'ru-RU' },
+            { code: 'nl', name: 'Nederlands', flag: '🇳🇱', speechLang: 'nl-NL' },
+            { code: 'sv', name: 'Svenska', flag: '🇸🇪', speechLang: 'sv-SE' },
+            { code: 'da', name: 'Dansk', flag: '🇩🇰', speechLang: 'da-DK' }
+        ];
+
+        // 全局变量
+        let selectedVoice = null;
+        let currentInterfaceLanguage = 'fr';
+        let currentTestLanguage = 'fr';
+        let translations = {};
+
+        // 翻译数据（简化版本，从项目翻译文件提取）
+        const TRANSLATIONS = {
+            fr: {
+                title: "Test de Voix",
+                backText: "Retour",
+                interfaceLanguage: "Langue de l'interface",
+                testLanguage: "Langue de test",
+                selectTestLanguage: "Sélectionner la langue de test",
+                browserNotSupported: "Votre navigateur ne supporte pas Web Speech API",
+                noTargetVoiceDetected: "Aucune voix détectée pour la langue sélectionnée. Sur iOS, allez dans Réglages > Accessibilité > Contenu énoncé > Voix pour ajouter des voix.",
+                voiceListUpdated: "Liste des voix mise à jour",
+                noTargetVoiceAvailable: "Aucune voix disponible pour la langue sélectionnée",
+                noVoiceFound: "Aucune voix trouvée, veuillez réessayer plus tard",
+                speechSynthesisNotSupported: "Votre navigateur ne supporte pas la synthèse vocale",
+                noTargetVoiceFoundUsingDefault: "Aucune voix trouvée pour la langue sélectionnée, utilisation de la voix par défaut",
+                speechError: "Erreur vocale",
+                readingStarted: "Lecture commencée",
+                readingFinished: "Lecture terminée",
+                testingAllTargetVoices: "Test de toutes les voix disponibles...",
+                availableVoices: "Voix disponibles:",
+                voicesDetected: "voix détectée(s)",
+                currentSavedVoice: "Voix sauvegardée actuelle:",
+                selectVoice: "Sélectionner une voix:",
+                testSelectedVoice: "Tester la voix sélectionnée",
+                testAllVoices: "Tester toutes les voix disponibles",
+                listAllVoices: "Lister toutes les voix",
+                clearSavedVoice: "Effacer la voix sauvegardée",
+                usingVoice: "Utilisation de la voix",
+                testCompleted: "Test terminé",
+                voiceRestored: "Voix restaurée",
+                voiceSavedNotAvailable: "La voix sauvegardée n'est plus disponible",
+                voiceSelectedAndSaved: "Voix sélectionnée et sauvegardée",
+                usingDefaultVoice: "Utilisation de la voix par défaut",
+                voiceSavedCleared: "Voix sauvegardée effacée. Utilisation de la voix par défaut.",
+                testSample: "1, 2, 3, 4, 5",
+                defaultVoiceOption: "Voix par défaut"
+            },
+            en: {
+                title: "Voice Test",
+                backText: "Back",
+                interfaceLanguage: "Interface Language",
+                testLanguage: "Test Language",
+                selectTestLanguage: "Select test language",
+                browserNotSupported: "Your browser does not support Web Speech API",
+                noTargetVoiceDetected: "No voice detected for the selected language. On iOS, go to Settings > Accessibility > Spoken Content > Voices to add voices.",
+                voiceListUpdated: "Voice list updated",
+                noTargetVoiceAvailable: "No voice available for the selected language",
+                noVoiceFound: "No voices found, please try again later",
+                speechSynthesisNotSupported: "Your browser does not support speech synthesis",
+                noTargetVoiceFoundUsingDefault: "No voice found for the selected language, using default voice",
+                speechError: "Speech error",
+                readingStarted: "Reading started",
+                readingFinished: "Reading finished",
+                testingAllTargetVoices: "Testing all available voices...",
+                availableVoices: "Available voices:",
+                voicesDetected: "voice(s) detected",
+                currentSavedVoice: "Current saved voice:",
+                selectVoice: "Select a voice:",
+                testSelectedVoice: "Test selected voice",
+                testAllVoices: "Test all available voices",
+                listAllVoices: "List all voices",
+                clearSavedVoice: "Clear saved voice",
+                usingVoice: "Using voice",
+                testCompleted: "Test completed",
+                voiceRestored: "Voice restored",
+                voiceSavedNotAvailable: "The saved voice is no longer available",
+                voiceSelectedAndSaved: "Voice selected and saved",
+                usingDefaultVoice: "Using default voice",
+                voiceSavedCleared: "Saved voice cleared. Using default voice.",
+                testSample: "1, 2, 3, 4, 5",
+                defaultVoiceOption: "Default voice"
+            },
+            zh: {
+                title: "语音测试",
+                backText: "返回",
+                interfaceLanguage: "界面语言",
+                testLanguage: "测试语言",
+                selectTestLanguage: "选择测试语言",
+                browserNotSupported: "您的浏览器不支持Web Speech API",
+                noTargetVoiceDetected: "未检测到所选语言的语音。在iOS上，请前往设置 > 辅助功能 > 朗读内容 > 语音来添加语音。",
+                voiceListUpdated: "语音列表已更新",
+                noTargetVoiceAvailable: "所选语言没有可用的语音",
+                noVoiceFound: "未找到语音，请稍后重试",
+                speechSynthesisNotSupported: "您的浏览器不支持语音合成",
+                noTargetVoiceFoundUsingDefault: "未找到所选语言的语音，使用默认语音",
+                speechError: "语音错误",
+                readingStarted: "开始朗读",
+                readingFinished: "朗读完成",
+                testingAllTargetVoices: "测试所有可用语音...",
+                availableVoices: "可用语音：",
+                voicesDetected: "检测到语音",
+                currentSavedVoice: "当前保存的语音：",
+                selectVoice: "选择语音：",
+                testSelectedVoice: "测试选中的语音",
+                testAllVoices: "测试所有可用语音",
+                listAllVoices: "列出所有语音",
+                clearSavedVoice: "清除保存的语音",
+                usingVoice: "使用语音",
+                testCompleted: "测试完成",
+                voiceRestored: "语音已恢复",
+                voiceSavedNotAvailable: "保存的语音不再可用",
+                voiceSelectedAndSaved: "语音已选择并保存",
+                usingDefaultVoice: "使用默认语音",
+                voiceSavedCleared: "已清除保存的语音。使用默认语音。",
+                testSample: "1, 2, 3, 4, 5",
+                defaultVoiceOption: "默认语音"
+            }
+        };
+
+        // 初始化翻译
+        translations = TRANSLATIONS.fr;
+
+        // 工具函数
+        function showWarning(message) {
+            const warning = document.getElementById('warning');
+            warning.textContent = message;
+            warning.style.display = 'block';
+        }
+
+        function showInfo(message) {
+            const info = document.getElementById('info');
+            info.textContent = message;
+            info.style.display = 'block';
+        }
+
+        function clearMessages() {
+            document.getElementById('warning').style.display = 'none';
+            document.getElementById('info').style.display = 'none';
+        }
+
+        // 获取当前测试语言配置
+        function getCurrentTestLanguage() {
+            return DICTATION_LANGUAGES.find(lang => lang.code === currentTestLanguage) || DICTATION_LANGUAGES[0];
+        }
+
+        // 获取当前测试语言的所有语音
+        function getTargetLanguageVoices() {
+            if (!window.speechSynthesis) return [];
+
+            const voices = window.speechSynthesis.getVoices();
+            const targetLang = getCurrentTestLanguage();
+
+            return voices.filter(voice => {
+                // 精确匹配语言代码
+                if (voice.lang.toLowerCase() === targetLang.speechLang.toLowerCase()) {
+                    return true;
+                }
+                // 匹配语言前缀（如 fr 匹配 fr-FR, fr-CA 等）
+                const voiceLangPrefix = voice.lang.split('-')[0].toLowerCase();
+                const targetLangPrefix = targetLang.speechLang.split('-')[0].toLowerCase();
+                return voiceLangPrefix === targetLangPrefix;
+            });
+        }
+
+        // 获取最佳语音
+        function getBestVoice() {
+            if (selectedVoice) {
+                return selectedVoice;
+            }
+
+            const targetVoices = getTargetLanguageVoices();
+            return targetVoices.length > 0 ? targetVoices[0] : null;
+        }
+
+        // 填充测试语言选择器
+        function populateTestLanguageSelector() {
+            console.log('Populating test language selector...');
+            const select = document.getElementById('testLanguageSelect');
+            if (!select) {
+                console.error('testLanguageSelect element not found');
+                return;
+            }
+
+            select.innerHTML = '';
+
+            DICTATION_LANGUAGES.forEach(lang => {
+                const option = document.createElement('option');
+                option.value = lang.code;
+                option.textContent = `${lang.flag} ${lang.name}`;
+                select.appendChild(option);
+            });
+
+            select.value = currentTestLanguage;
+            console.log('Test language selector populated with', DICTATION_LANGUAGES.length, 'languages');
+        }
+
+        // 填充语音选择器
+        function populateVoiceSelector() {
+            const select = document.getElementById('voiceSelect');
+            const targetVoices = getTargetLanguageVoices();
+            const t = translations;
+
+            select.innerHTML = `<option value="">${t.defaultVoiceOption || 'Default voice'}</option>`;
+
+            targetVoices.forEach((voice, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${voice.name} (${voice.lang})`;
+                select.appendChild(option);
+            });
+
+            if (targetVoices.length === 0) {
+                const option = document.createElement('option');
+                option.textContent = t.noTargetVoiceAvailable || 'No voice available for selected language';
+                option.disabled = true;
+                select.appendChild(option);
+            }
+
+            restoreSavedVoice();
+        }
+
+        // 恢复保存的语音
+        function restoreSavedVoice() {
+            try {
+                const storageKey = `selectedVoice_${currentTestLanguage}`;
+                const savedVoiceData = localStorage.getItem(storageKey);
+                if (savedVoiceData) {
+                    const voiceData = JSON.parse(savedVoiceData);
+                    const targetVoices = getTargetLanguageVoices();
+                    const select = document.getElementById('voiceSelect');
+
+                    const matchingVoiceIndex = targetVoices.findIndex(voice =>
+                        voice.voiceURI === voiceData.voiceURI ||
+                        (voice.name === voiceData.name && voice.lang === voiceData.lang)
+                    );
+
+                    if (matchingVoiceIndex !== -1) {
+                        select.value = matchingVoiceIndex;
+                        selectedVoice = targetVoices[matchingVoiceIndex];
+                        showInfo(`${translations.voiceRestored}: ${selectedVoice.name} (${selectedVoice.lang})`);
+                        updateSavedVoiceStatus();
+                    } else {
+                        localStorage.removeItem(storageKey);
+                        showWarning(translations.voiceSavedNotAvailable);
+                        updateSavedVoiceStatus();
+                    }
+                } else {
+                    updateSavedVoiceStatus();
+                }
+            } catch (error) {
+                console.error('Error restoring voice:', error);
+                const storageKey = `selectedVoice_${currentTestLanguage}`;
+                localStorage.removeItem(storageKey);
+                updateSavedVoiceStatus();
+            }
+        }
+
+        // 更新保存的语音状态显示
+        function updateSavedVoiceStatus() {
+            const statusDiv = document.getElementById('savedVoiceStatus');
+            const infoSpan = document.getElementById('savedVoiceInfo');
+
+            try {
+                const storageKey = `selectedVoice_${currentTestLanguage}`;
+                const savedVoiceData = localStorage.getItem(storageKey);
+                if (savedVoiceData) {
+                    const voiceData = JSON.parse(savedVoiceData);
+                    infoSpan.textContent = `${voiceData.name} (${voiceData.lang})`;
+                    statusDiv.style.display = 'block';
+                } else {
+                    statusDiv.style.display = 'none';
+                }
+            } catch (error) {
+                statusDiv.style.display = 'none';
+            }
+        }
+
+        // 清除保存的语音
+        function clearSavedVoice() {
+            const storageKey = `selectedVoice_${currentTestLanguage}`;
+            localStorage.removeItem(storageKey);
+            selectedVoice = null;
+            const select = document.getElementById('voiceSelect');
+            select.value = '';
+            updateSavedVoiceStatus();
+            showInfo(translations.voiceSavedCleared);
+        }
+
+        // 语音选择变化处理
+        function onVoiceChange() {
+            clearMessages();
+            const select = document.getElementById('voiceSelect');
+            const targetVoices = getTargetLanguageVoices();
+
+            if (select.value === '') {
+                selectedVoice = null;
+                const storageKey = `selectedVoice_${currentTestLanguage}`;
+                localStorage.removeItem(storageKey);
+                showInfo(translations.usingDefaultVoice);
+            } else {
+                const voiceIndex = parseInt(select.value);
+                selectedVoice = targetVoices[voiceIndex];
+
+                const voiceData = {
+                    name: selectedVoice.name,
+                    lang: selectedVoice.lang,
+                    voiceURI: selectedVoice.voiceURI
+                };
+                const storageKey = `selectedVoice_${currentTestLanguage}`;
+                localStorage.setItem(storageKey, JSON.stringify(voiceData));
+
+                showInfo(`${translations.voiceSelectedAndSaved}: ${selectedVoice.name} (${selectedVoice.lang})`);
+            }
+
+            updateSavedVoiceStatus();
+        }
+
+        // 测试选中的语音
+        function testSelectedVoice() {
+            if (!window.speechSynthesis) {
+                showWarning(translations.speechSynthesisNotSupported);
+                return;
+            }
+
+            clearMessages();
+
+            const testLang = getCurrentTestLanguage();
+            const utterance = new SpeechSynthesisUtterance(translations.testSample);
+            utterance.lang = testLang.speechLang;
+
+            const bestVoice = getBestVoice();
+            if (bestVoice) {
+                utterance.voice = bestVoice;
+                showInfo(`${translations.usingVoice}: ${bestVoice.name} (${bestVoice.lang})`);
+            } else {
+                showWarning(translations.noTargetVoiceFoundUsingDefault);
+            }
+
+            utterance.onerror = (event) => {
+                showWarning(`${translations.speechError}: ${event.error}`);
+            };
+
+            utterance.onstart = () => {
+                console.log(translations.readingStarted);
+            };
+
+            utterance.onend = () => {
+                console.log(translations.readingFinished);
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // 测试所有目标语言的语音
+        function testAllTargetVoices() {
+            const targetVoices = getTargetLanguageVoices();
+            if (targetVoices.length === 0) {
+                showWarning(translations.noTargetVoiceAvailable);
+                return;
+            }
+
+            clearMessages();
+            showInfo(translations.testingAllTargetVoices);
+
+            let voiceIndex = 0;
+            const testLang = getCurrentTestLanguage();
+
+            function testNextVoice() {
+                if (voiceIndex >= targetVoices.length) {
+                    showInfo(translations.testCompleted);
+                    return;
+                }
+
+                const voice = targetVoices[voiceIndex];
+                const utterance = new SpeechSynthesisUtterance(`${voiceIndex + 1}: ${voice.name}. ${translations.testSample}`);
+                utterance.lang = testLang.speechLang;
+                utterance.voice = voice;
+
+                utterance.onstart = () => {
+                    showInfo(`${voiceIndex + 1}/${targetVoices.length}: ${voice.name}`);
+                };
+
+                utterance.onend = () => {
+                    voiceIndex++;
+                    setTimeout(testNextVoice, 1000);
+                };
+
+                utterance.onerror = () => {
+                    voiceIndex++;
+                    setTimeout(testNextVoice, 500);
+                };
+
+                window.speechSynthesis.speak(utterance);
+            }
+
+            testNextVoice();
+        }
+
+        // 列出所有语音
+        function listVoices() {
+            const voiceList = document.getElementById('voiceList');
+            const voices = window.speechSynthesis.getVoices();
+
+            if (voices.length === 0) {
+                voiceList.innerHTML = `<p>${translations.noVoiceFound}</p>`;
+                voiceList.style.display = 'block';
+                return;
+            }
+
+            const testLang = getCurrentTestLanguage();
+            let html = `<h3>${translations.availableVoices}</h3><ul>`;
+            voices.forEach(voice => {
+                const isTargetLanguage = voice.lang.toLowerCase().startsWith(testLang.speechLang.split('-')[0].toLowerCase());
+                const className = isTargetLanguage ? 'target-language' : '';
+                html += `<li class="${className}">${voice.name} (${voice.lang}) ${voice.default ? '[default]' : ''}</li>`;
+            });
+            html += '</ul>';
+
+            voiceList.innerHTML = html;
+            voiceList.style.display = 'block';
+        }
+
+        // 更新页面文本
+        function updatePageTexts() {
+            console.log('Updating page texts with language:', currentInterfaceLanguage);
+            const t = translations;
+
+            // 安全地更新元素文本
+            const updateElement = (id, text) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = text;
+                } else {
+                    console.warn(`Element with id '${id}' not found`);
+                }
+            };
+
+            // 更新页面标题和元素文本
+            updateElement('page-title', t.title || 'Voice Test');
+            updateElement('main-title', t.title || 'Voice Test');
+            updateElement('back-text', t.backText || 'Back');
+            updateElement('interface-lang-label', t.interfaceLanguage || 'Interface Language');
+            updateElement('test-lang-label', t.testLanguage || 'Test Language');
+            updateElement('saved-voice-label', t.currentSavedVoice || 'Current saved voice:');
+            updateElement('select-voice-label', t.selectVoice || 'Select a voice:');
+            updateElement('default-voice-option', t.defaultVoiceOption || 'Default voice');
+
+            // 更新按钮文本
+            updateElement('testVoiceBtn', t.testSelectedVoice || 'Test selected voice');
+            updateElement('testAllVoicesBtn', t.testAllVoices || 'Test all available voices');
+            updateElement('listVoicesBtn', t.listAllVoices || 'List all voices');
+            updateElement('clearSavedVoiceBtn', t.clearSavedVoice || 'Clear saved voice');
+
+            // 更新HTML lang属性
+            document.documentElement.lang = currentInterfaceLanguage;
+        }
+
+        // 界面语言切换
+        function changeInterfaceLanguage(langCode) {
+            console.log('Changing interface language to:', langCode);
+            currentInterfaceLanguage = langCode;
+            translations = TRANSLATIONS[langCode] || TRANSLATIONS.fr;
+
+            // 更新界面语言选择器的值
+            const interfaceSelect = document.getElementById('interfaceLanguageSelect');
+            if (interfaceSelect && interfaceSelect.value !== langCode) {
+                interfaceSelect.value = langCode;
+            }
+
+            // 更新页面文本
+            updatePageTexts();
+
+            // 同步到主页面（保存到localStorage，主页面会自动检测）
+            localStorage.setItem('selectedLanguage', langCode);
+
+            console.log('Interface language changed and synced to main page');
+        }
+
+        // 测试语言切换
+        function changeTestLanguage(langCode) {
+            console.log('Changing test language to:', langCode);
+            currentTestLanguage = langCode;
+            selectedVoice = null; // 重置选中的语音
+            localStorage.setItem('selectedDictationLanguage', langCode);
+
+            // 清除消息
+            clearMessages();
+
+            // 重新填充语音选择器
+            populateVoiceSelector();
+
+            // 更新语音状态显示
+            updateSavedVoiceStatus();
+
+            // 隐藏语音列表
+            const voiceList = document.getElementById('voiceList');
+            if (voiceList) {
+                voiceList.style.display = 'none';
+            }
+
+            // 显示检测到的语音数量
+            const targetVoices = getTargetLanguageVoices();
+            const testLang = getCurrentTestLanguage();
+            if (targetVoices.length === 0) {
+                showWarning(translations.noTargetVoiceDetected || 'No voice detected for the selected language');
+            } else {
+                showInfo(`${testLang.name}: ${targetVoices.length} ${translations.voicesDetected || 'voice(s) detected'}`);
+            }
+        }
+
+        // 初始化函数
+        function initialize() {
+            console.log('Initializing voice test page...');
+
+            // 自动跟随主页面的界面语言设置
+            const savedInterfaceLanguage = localStorage.getItem('selectedLanguage');
+            if (savedInterfaceLanguage && TRANSLATIONS[savedInterfaceLanguage]) {
+                currentInterfaceLanguage = savedInterfaceLanguage;
+                console.log('Following main page interface language:', savedInterfaceLanguage);
+            } else {
+                // 如果没有保存的语言，检测浏览器语言
+                const browserLang = navigator.language.split('-')[0];
+                if (TRANSLATIONS[browserLang]) {
+                    currentInterfaceLanguage = browserLang;
+                    console.log('Using browser language:', browserLang);
+                } else {
+                    currentInterfaceLanguage = 'fr'; // 默认法语
+                    console.log('Using default language: fr');
+                }
+            }
+
+            // 恢复保存的测试语言
+            const savedTestLanguage = localStorage.getItem('selectedDictationLanguage');
+            if (savedTestLanguage && DICTATION_LANGUAGES.find(lang => lang.code === savedTestLanguage)) {
+                currentTestLanguage = savedTestLanguage;
+                console.log('Restored test language:', savedTestLanguage);
+            } else {
+                // 如果没有保存的测试语言，使用界面语言作为默认测试语言（如果支持的话）
+                const matchingTestLang = DICTATION_LANGUAGES.find(lang => lang.code === currentInterfaceLanguage);
+                if (matchingTestLang) {
+                    currentTestLanguage = currentInterfaceLanguage;
+                    console.log('Using interface language as test language:', currentInterfaceLanguage);
+                } else {
+                    currentTestLanguage = 'fr'; // 默认法语
+                    console.log('Using default test language: fr');
+                }
+            }
+
+            // 设置翻译
+            translations = TRANSLATIONS[currentInterfaceLanguage] || TRANSLATIONS.fr;
+
+            // 设置界面语言选择器的值（跟随主页面）
+            const interfaceSelect = document.getElementById('interfaceLanguageSelect');
+            if (interfaceSelect) {
+                interfaceSelect.value = currentInterfaceLanguage;
+            }
+
+            // 填充测试语言选择器
+            populateTestLanguageSelector();
+
+            // 更新页面文本
+            updatePageTexts();
+
+            // 设置事件监听器
+            const interfaceLanguageSelect = document.getElementById('interfaceLanguageSelect');
+            const testLanguageSelect = document.getElementById('testLanguageSelect');
+
+            if (interfaceLanguageSelect) {
+                interfaceLanguageSelect.addEventListener('change', (e) => {
+                    changeInterfaceLanguage(e.target.value);
+                });
+            }
+
+            if (testLanguageSelect) {
+                testLanguageSelect.addEventListener('change', (e) => {
+                    changeTestLanguage(e.target.value);
+                });
+            }
+
+            // 监听主页面语言变化（如果在同一个窗口中）
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'selectedLanguage' && e.newValue && TRANSLATIONS[e.newValue]) {
+                    console.log('Main page language changed to:', e.newValue);
+                    changeInterfaceLanguage(e.newValue);
+                }
+            });
+
+            console.log('Initialization complete - Interface:', currentInterfaceLanguage, 'Test:', currentTestLanguage);
+        }
+
+        // 检查语音可用性
+        function checkVoices() {
+            const voices = window.speechSynthesis.getVoices();
+            if (voices.length === 0) {
+                setTimeout(checkVoices, 100);
+                return;
+            }
+
+            populateVoiceSelector();
+
+            // 只在初始化时显示语音检测信息
+            if (!window.voicesInitialized) {
+                const targetVoices = getTargetLanguageVoices();
+                const testLang = getCurrentTestLanguage();
+                if (targetVoices.length === 0) {
+                    showWarning(translations.noTargetVoiceDetected);
+                } else {
+                    showInfo(`${testLang.name}: ${targetVoices.length} ${translations.voicesDetected}`);
+                }
+                window.voicesInitialized = true;
+            }
+        }
+
+        // 页面加载事件
+        window.addEventListener('load', () => {
+            console.log('Page loaded, starting initialization...');
+
+            if (!window.speechSynthesis) {
+                showWarning('Your browser does not support Web Speech API');
+                return;
+            }
+
+            // 先初始化页面
+            initialize();
+
+            // 然后检查语音
+            checkVoices();
+        });
+
+        // 语音列表变化事件
+        window.speechSynthesis.onvoiceschanged = () => {
+            console.log('Voice list changed');
+            if (window.voicesInitialized) {
+                populateVoiceSelector();
+            }
+        };
+    </script>
+</body>
+</html>

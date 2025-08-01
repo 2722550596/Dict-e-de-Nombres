@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">Experience Debug Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .status {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+            white-space: pre-line;
+        }
+        
+        .button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        .button:hover {
+            background-color: #0056b3;
+        }
+        
+        .button.danger {
+            background-color: #dc3545;
+        }
+        
+        .button.danger:hover {
+            background-color: #c82333;
+        }
+        
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 4px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .log .success { color: #28a745; }
+        .log .error { color: #dc3545; }
+        .log .info { color: #007bff; }
+        
+        .language-selector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .language-selector select {
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+    </style>
+  <script type="module" crossorigin src="/Dict-e-de-Nombres/assets/debug/debug-experience-i18n-sBjRNdMq.js"></script>
+  <link rel="modulepreload" crossorigin href="/Dict-e-de-Nombres/assets/languages-C7XqvHkR.js">
+</head>
+<body>
+    <div class="language-selector">
+        <select id="languageSelect">
+            <option value="fr">🇫🇷 Français</option>
+            <option value="en" selected>🇺🇸 English</option>
+            <option value="zh">🇨🇳 中文</option>
+        </select>
+    </div>
+
+    <h1 id="main-title">Experience Debug Tool</h1>
+
+    <div class="container">
+        <h2 id="current-status-title">Current Status</h2>
+        <div id="currentStatus" class="status">
+            Loading...
+        </div>
+        <button class="button" id="refreshBtn" onclick="refreshStatus()">Refresh Status</button>
+    </div>
+
+    <div class="container">
+        <h2 id="test-operations-title">Test Operations</h2>
+        <button class="button" id="testSimpleBtn" onclick="testSimpleSession()">Test Simple Session (5 correct)</button>
+        <button class="button" id="testMathBtn" onclick="testMathSession()">Test Math Session (3 correct)</button>
+        <button class="button" id="testMixedBtn" onclick="testMixedSession()">Test Mixed Session (partial correct)</button>
+        <button class="button" id="testEmptyBtn" onclick="testEmptySession()">Test Empty Session</button>
+        <br>
+        <button class="button danger" id="clearUserBtn" onclick="clearUserData()">Clear User Data</button>
+        <button class="button danger" id="clearAllBtn" onclick="clearAllData()">Clear All Data</button>
+    </div>
+
+    <div class="container">
+        <h2 id="operation-log-title">Operation Log</h2>
+        <div id="logContainer" class="log"></div>
+        <button class="button" id="clearLogBtn" onclick="clearLog()">Clear Log</button>
+    </div>
+
+</body>
+</html>
