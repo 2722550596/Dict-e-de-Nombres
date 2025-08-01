@@ -107,29 +107,63 @@ export const getBestVoiceForLanguage = (speechLang: string): SpeechSynthesisVoic
   }
 
   const voices = window.speechSynthesis.getVoices();
-  
+  const langCode = speechLang.split('-')[0].toLowerCase();
+
+  // 首先检查用户是否保存了特定语音偏好
+  const storageKey = `selectedVoice_${langCode}`;
+
+  try {
+    const savedVoiceData = localStorage.getItem(storageKey);
+    if (savedVoiceData) {
+      const voiceData = JSON.parse(savedVoiceData);
+
+      // 尝试找到匹配的保存语音
+      const savedVoice = voices.find(voice =>
+        voice.voiceURI === voiceData.voiceURI ||
+        (voice.name === voiceData.name && voice.lang === voiceData.lang)
+      );
+
+      if (savedVoice) {
+        console.log(`🎤 使用用户保存的语音: ${savedVoice.name} (${savedVoice.lang})`);
+        return savedVoice;
+      } else {
+        // 如果保存的语音不再可用，清除保存的数据
+        localStorage.removeItem(storageKey);
+        console.warn(`⚠️ 保存的语音不再可用，已清除: ${voiceData.name}`);
+      }
+    }
+  } catch (error) {
+    console.error('读取保存语音时出错:', error);
+    localStorage.removeItem(storageKey);
+  }
+
+  // 如果没有保存的语音，使用自动选择逻辑
   // 首先尝试精确匹配
-  let bestVoice = voices.find(voice => 
+  let bestVoice = voices.find(voice =>
     voice.lang.toLowerCase() === speechLang.toLowerCase()
   );
 
   // 如果没有精确匹配，尝试语言代码匹配（如 'en' 匹配 'en-US'）
   if (!bestVoice) {
-    const langCode = speechLang.split('-')[0].toLowerCase();
-    bestVoice = voices.find(voice => 
+    bestVoice = voices.find(voice =>
       voice.lang.toLowerCase().startsWith(langCode)
     );
   }
 
-  // 优先选择本地语音
-  if (bestVoice && !bestVoice.localService) {
-    const localVoice = voices.find(voice => 
-      voice.lang.toLowerCase().startsWith(speechLang.split('-')[0].toLowerCase()) &&
-      voice.localService
-    );
-    if (localVoice) {
-      bestVoice = localVoice;
-    }
+  // 不强制优先选择本地语音，保持找到的最佳语音
+  // 注释掉原来强制选择本地语音的逻辑，让用户可以使用Google语音
+  // if (bestVoice && !bestVoice.localService) {
+  //   const localVoice = voices.find(voice =>
+  //     voice.lang.toLowerCase().startsWith(langCode) &&
+  //     voice.localService
+  //   );
+  //   if (localVoice) {
+  //     bestVoice = localVoice;
+  //   }
+  // }
+
+  if (bestVoice) {
+    console.log(`🎤 自动选择语音: ${bestVoice.name} (${bestVoice.lang})`);
   }
 
   return bestVoice || null;
